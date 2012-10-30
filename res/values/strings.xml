@@ -1,0 +1,16 @@
+<resources>
+
+    <string name="app_name">Offline Recipe Manager</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="button_update">Update Database</string>
+    <string name="label_search">Search:</string>
+    <string name="label_include">Include</string>
+    <string name="label_limit">Limit</string>
+    <string name="label_exclude">Exclude:</string>
+    <string name="titlePrefs">Preferences</string>
+    <string name="serverurltitle">Server Url:</string>
+    <string name="serverulsummary">Server Url:</string>
+
+</resources>
