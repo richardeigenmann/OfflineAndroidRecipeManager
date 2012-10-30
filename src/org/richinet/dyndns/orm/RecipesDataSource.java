@@ -21,15 +21,15 @@ public class RecipesDataSource {
 	
 	// Database fields
 	private SQLiteDatabase database;
-	private DBRecipeHandler dbHelper;
-	private String[] allColumns = { DBRecipeHandler.CLASSIFICATIONS_RECIPE_ID,
-			DBRecipeHandler.RECIPE_FILE, DBRecipeHandler.RECIPE_TITLE,
-			DBRecipeHandler.RECIPE_IMAGE_FILENAME,
-			DBRecipeHandler.RECIPE_IMAGE_WIDTH,
-			DBRecipeHandler.RECIPE_IMAGE_HEIGHT };
+	private DBHandler dbHelper;
+	private String[] allColumns = { DBHandler.CLASSIFICATIONS_RECIPE_ID,
+			DBHandler.RECIPE_FILE, DBHandler.RECIPE_TITLE,
+			DBHandler.RECIPE_IMAGE_FILENAME,
+			DBHandler.RECIPE_IMAGE_WIDTH,
+			DBHandler.RECIPE_IMAGE_HEIGHT };
 
 	public RecipesDataSource( Context context ) {
-		dbHelper = new DBRecipeHandler( context );
+		dbHelper = new DBHandler( context );
 	}
 
 	public void open() throws SQLException {
@@ -44,17 +44,17 @@ public class RecipesDataSource {
 		deleteRecipe( recipe.getFile() );
 
 		ContentValues values = new ContentValues();
-		values.put( DBRecipeHandler.RECIPE_FILE, recipe.getFile() );
-		values.put( DBRecipeHandler.RECIPE_TITLE, recipe.getTitle() );
-		values.put( DBRecipeHandler.RECIPE_IMAGE_FILENAME,
+		values.put( DBHandler.RECIPE_FILE, recipe.getFile() );
+		values.put( DBHandler.RECIPE_TITLE, recipe.getTitle() );
+		values.put( DBHandler.RECIPE_IMAGE_FILENAME,
 				recipe.getImageFilename() );
-		values.put( DBRecipeHandler.RECIPE_IMAGE_WIDTH, recipe.getImageWidth() );
-		values.put( DBRecipeHandler.RECIPE_IMAGE_HEIGHT,
+		values.put( DBHandler.RECIPE_IMAGE_WIDTH, recipe.getImageWidth() );
+		values.put( DBHandler.RECIPE_IMAGE_HEIGHT,
 				recipe.getImageHeight() );
-		long insertId = database.insert( DBRecipeHandler.TABLE_RECIPES, null,
+		long insertId = database.insert( DBHandler.TABLE_RECIPES, null,
 				values );
-		Cursor cursor = database.query( DBRecipeHandler.TABLE_RECIPES,
-				allColumns, DBRecipeHandler.CLASSIFICATIONS_RECIPE_ID + " = " + insertId, null,
+		Cursor cursor = database.query( DBHandler.TABLE_RECIPES,
+				allColumns, DBHandler.CLASSIFICATIONS_RECIPE_ID + " = " + insertId, null,
 				null, null, null );
 		cursor.moveToFirst();
 		Recipe neRecipe = cursorToRecipe( cursor );
@@ -65,18 +65,18 @@ public class RecipesDataSource {
 	public void deleteRecipe( String fileId ) {
 		String safeFileId = DatabaseUtils.sqlEscapeString( fileId );
 		System.out.println( "Recipe deleted where File = " + safeFileId );
-		database.delete( DBRecipeHandler.TABLE_RECIPES,
-				DBRecipeHandler.RECIPE_FILE + " = " + safeFileId, null );
+		database.delete( DBHandler.TABLE_RECIPES,
+				DBHandler.RECIPE_FILE + " = " + safeFileId, null );
 	}
 
 	public List<Recipe> searchRecipes( String searchString ) {
 		List<Recipe> recipes = new ArrayList<Recipe>();
 		searchString = "%" + searchString + "%";
 
-		String likeClause = DBRecipeHandler.RECIPE_TITLE + " like ?";
+		String likeClause = DBHandler.RECIPE_TITLE + " like ?";
 		Log.d( TAG, "Like: " + likeClause );
 		Log.d( TAG, "SearchString: " + searchString );
-		Cursor cursor = database.query( DBRecipeHandler.TABLE_RECIPES,
+		Cursor cursor = database.query( DBHandler.TABLE_RECIPES,
 				allColumns, likeClause, new String[] { searchString }, null,
 				null, null, null );
 
@@ -106,7 +106,7 @@ public class RecipesDataSource {
 	 * @return the number of recipes
 	 */
 	public long fetchRecipesCount() {
-	    return DatabaseUtils.queryNumEntries( database, DBRecipeHandler.TABLE_RECIPES );
+	    return DatabaseUtils.queryNumEntries( database, DBHandler.TABLE_RECIPES );
 	}
 
 }
