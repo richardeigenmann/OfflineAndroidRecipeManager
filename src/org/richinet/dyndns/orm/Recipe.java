@@ -61,6 +61,7 @@ public class Recipe {
 	 */
 	public void setImageFilename( String imageFilename ) {
 		this.imageFilename = imageFilename;
+		setHasImage( true );
 	}
 
 	int imageWidth = 0;
@@ -147,9 +148,8 @@ public class Recipe {
 		Log.d( TAG, "Height: " + getImageHeight() );
 		Log.d( TAG, "HasImage: " + ( hasImage() ? "true" : "false" ) );
 		for ( CategoryPair classification : classifications ) {
-			Log.d( TAG,
-					String.format( "%s: %s", classification,
-							classification.getCategory(), classification.getMember() ) );
+			Log.d( TAG, String.format( "%s: %s", classification.getCategory(),
+					classification.getMember() ) );
 		}
 	}
 }

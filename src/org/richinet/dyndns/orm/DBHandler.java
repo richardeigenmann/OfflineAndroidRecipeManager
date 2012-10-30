@@ -10,20 +10,18 @@ public class DBHandler extends SQLiteOpenHelper {
 	private static final String TAG = DBHandler.class.getName();
 
 	private static final String DATABASE_NAME = "recipes.db";
-	private static final int DATABASE_VERSION = 2;
+	private static final int DATABASE_VERSION = 5;
 	
 	public static final String TABLE_RECIPES = "recipes";
-	public static final String RECIPE_RECIPE_ID = "recipe_id";
 	public static final String RECIPE_TITLE = "title";
 	public static final String RECIPE_FILE = "file";
 	public static final String RECIPE_IMAGE_FILENAME = "imagefilename";
 	public static final String RECIPE_IMAGE_WIDTH = "imagewidth";
 	public static final String RECIPE_IMAGE_HEIGHT = "imageheight";
 	private static final String TABLE_RECIPES_CREATE = "create table "
-	      + TABLE_RECIPES + "(" + RECIPE_RECIPE_ID
-	      + " integer primary key autoincrement, " 
+	      + TABLE_RECIPES + "("  
+	      + RECIPE_FILE + " text primary key not null, "
 	      + RECIPE_TITLE + " text not null, "
-	      + RECIPE_FILE + " text not null, "
 	      + RECIPE_IMAGE_FILENAME + " text not null, "
 	      + RECIPE_IMAGE_WIDTH + " int not null, "
 	      + RECIPE_IMAGE_HEIGHT + " int not null"
@@ -31,15 +29,17 @@ public class DBHandler extends SQLiteOpenHelper {
 
 	
 	public static final String TABLE_CLASSIFICATIONS = "classifications";
+	public static final String CLASSIFICATIONS_RECIPE_FILE = "recipe_file";
 	public static final String CLASSIFICATIONS_CATEGORY = "category";
 	public static final String CLASSIFICATIONS_MEMBER = "member";
-	public static final String CLASSIFICATIONS_RECIPE_ID = "recipe_id";
 	
 	private static final String TABLE_CLASSIFICATIONS_CREATE = "create table "
 		      + TABLE_CLASSIFICATIONS + "(" 
 		      + CLASSIFICATIONS_CATEGORY + " text not null, "
 		      + CLASSIFICATIONS_MEMBER + " text not null, "
-			  + CLASSIFICATIONS_RECIPE_ID + " int not null "
+			  + CLASSIFICATIONS_RECIPE_FILE + " text not null "
+			  //+ ", primary key ("
+			  //+ CLASSIFICATIONS_CATEGORY + ", " + CLASSIFICATIONS_MEMBER + ") "
 		      + ");";		
 
 	public DBHandler( Context context ) {

@@ -53,8 +53,8 @@ public class RecipeParserThread extends Thread {
 		
 		String url = prefs.getString( "serverurl",
 				StaticAppStuff.DEFAULT_WEBSERVER );
-		Log.d( TAG, url );
-		Log.d( TAG, prefs.getString( "serverurl", "no serverurl" ) );
+		//Log.d( TAG, url );
+		//Log.d( TAG, prefs.getString( "serverurl", "no serverurl" ) );
 		String lastRunTimeStamp = prefs.getString( "lastRunTimeStamp",
 				"2000-01-01 00:00:00" );
 		String escapedLastRunTimeStamp = "";
