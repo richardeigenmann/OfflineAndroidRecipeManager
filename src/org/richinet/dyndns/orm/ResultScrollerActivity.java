@@ -38,7 +38,6 @@ public class ResultScrollerActivity extends Activity {
 		
 		
 		RecipesDataSource datasource = new RecipesDataSource( this );
-		datasource.open();
 		List<Recipe> recipes = datasource.searchRecipes( searchTerm );
 		
 		// Use the SimpleCursorAdapter to show the

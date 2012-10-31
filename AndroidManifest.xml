@@ -22,11 +22,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-       <!--  <activity
+        <!--
+        <activity
             android:name=".gui.PrefsActivity"
             android:label="@string/titlePrefs" >
-        </activity> -->
-        <activity android:name="ResultScrollerActivity"></activity>
+        </activity>
+        -->
+        <activity android:name="ResultScrollerActivity" >
+        </activity>
+        <activity
+            android:name=".CategoryPickActivity"
+            android:label="@string/title_activity_category_pick" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

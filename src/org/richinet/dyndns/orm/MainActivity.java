@@ -71,7 +71,40 @@ public class MainActivity extends Activity {
 				MainActivity.this.startActivity( searchIntent );
 			}
 		} );
+		
+		
+		final EditText include_words = (EditText) findViewById( R.id.include_words );
+		include_words.setOnClickListener( new View.OnClickListener() {
+			
+			@Override
+			public void onClick( View v ) {
+				Intent pickCatrgoryIntent = new Intent( MainActivity.this,
+						CategoryPickActivity.class );
+				MainActivity.this.startActivityForResult( pickCatrgoryIntent, INCLUDE_WORDS );		
+			}
+		} );
 	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+	  super.onActivityResult(requestCode, resultCode, data);
+	  switch(requestCode) {
+	    case (INCLUDE_WORDS) : {
+	      if (resultCode == Activity.RESULT_OK )  {
+	    	  Bundle extras = data.getExtras();
+	    	  String[] strings = data.getStringArrayExtra( "picks");
+	    	  for ( String s : strings ) {
+	    		  Log.d(TAG, s);
+	    	  }
+	      }
+	      break;
+	    } 
+	  }
+	}
+	
+	
+	
+	private static final int INCLUDE_WORDS = 1;
 
 	/**
 	 * Inflate an option menu

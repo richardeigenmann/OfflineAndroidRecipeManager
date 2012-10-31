@@ -1,9 +1,9 @@
 <resources>
 
     <string name="app_name">Offline Recipe Manager</string>
-    <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="status_text">Status</string>
     <string name="button_update">Update Database</string>
     <string name="label_search">Search:</string>
     <string name="label_include">Include</string>
@@ -12,5 +12,9 @@
     <string name="titlePrefs">Preferences</string>
     <string name="serverurltitle">Server Url:</string>
     <string name="serverulsummary">Server Url:</string>
+    <string name="title_activity_category_pick">CategoryPickActivity</string>
+    <string name="main_no_items">No items</string>
+    <string name="button_ok">OK</string>
+    <string name="button_clear">Clear</string>
 
 </resources>
