@@ -20,19 +20,17 @@ public class RecipeParserThread extends Thread {
 
 	private static final String TAG = "RecipeParserThread";
 
-	
 	StaticAppStuff app;
 
 	private RecipesDataSource datasource;
 	private SharedPreferences prefs;
 	private Handler handler = new Handler();
 	private ProgressBar progressBar;
-	private MainActivity mainActivity;
+	private DownloadActivity mainActivity;
 	private Context context;
 
-
-	public RecipeParserThread( Context context, 
-			SharedPreferences prefs, ProgressBar progressBar, MainActivity mainActivity ) {
+	public RecipeParserThread( Context context, SharedPreferences prefs,
+			ProgressBar progressBar, DownloadActivity mainActivity ) {
 		this.context = context;
 		this.prefs = prefs;
 		this.progressBar = progressBar;
@@ -45,16 +43,39 @@ public class RecipeParserThread extends Thread {
 
 	@Override
 	public void run() {
-		SimpleDateFormat sdf = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
-		String rememberStartTimeStamp = sdf.format( new Date() );
+		String escapedLastRunTimeStamp = getLastRunTimeStamp( prefs );
+		String url = prefs.getString( "serverurl",
+				StaticAppStuff.DEFAULT_WEBSERVER );
+		String fullUrl = url + StaticAppStuff.PHP_FILTER_SCRIPT + "?startfrom="
+				+ escapedLastRunTimeStamp;
+		Log.d( TAG, "fullUrl: " + fullUrl );
+		ArrayList<String> lines = HttpRetriever.retrieveFromURL( fullUrl );
 
 		datasource = new RecipesDataSource( context );
 		datasource.open();
-		
-		String url = prefs.getString( "serverurl",
-				StaticAppStuff.DEFAULT_WEBSERVER );
-		//Log.d( TAG, url );
-		//Log.d( TAG, prefs.getString( "serverurl", "no serverurl" ) );
+		int parsedRecipes = parse( lines );
+		if ( parsedRecipes > 0 ) {
+			SharedPreferences.Editor editor = prefs.edit();
+			SimpleDateFormat sdf = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
+			String rememberStartTimeStamp = sdf.format( new Date() );
+			editor.putString( "lastRunTimeStamp", rememberStartTimeStamp );
+			editor.commit();
+		}
+		Log.d( TAG, "Finished downloading %d recipes" );
+		datasource.close();
+		progressDone();
+	}
+
+	/**
+	 * Returns the URLencoded version of the last time the database was
+	 * refreshed.
+	 * 
+	 * @param prefs
+	 *            The preferences object where the "lastRunTimeStamp" will be
+	 *            taken or Jan 1 2000 if not found.
+	 * @return A urlencoded version of the last timestamp.
+	 */
+	public static String getLastRunTimeStamp( SharedPreferences prefs ) {
 		String lastRunTimeStamp = prefs.getString( "lastRunTimeStamp",
 				"2000-01-01 00:00:00" );
 		String escapedLastRunTimeStamp = "";
@@ -62,24 +83,11 @@ public class RecipeParserThread extends Thread {
 			escapedLastRunTimeStamp = URLEncoder.encode( lastRunTimeStamp,
 					"UTF-8" );
 		} catch ( UnsupportedEncodingException e ) {
-			// TODO Auto-generated catch block
+			Log.e( TAG, e.getMessage() );
 			e.printStackTrace();
 		}
 		Log.d( TAG, "escapedLastRunTimeStamp: " + escapedLastRunTimeStamp );
-		String fullUrl = url + StaticAppStuff.PHP_FILTER_SCRIPT + "?startfrom="
-				+ escapedLastRunTimeStamp;
-		Log.d( TAG, "fullUrl: " + fullUrl );
-		ArrayList<String> lines = HttpRetriever.retrieveFromURL( fullUrl );
-
-		int parsedRecipes = parse( lines );
-		if ( parsedRecipes > 0 ) {
-			SharedPreferences.Editor editor = prefs.edit();
-			editor.putString( "lastRunTimeStamp", rememberStartTimeStamp );
-			editor.commit();
-		}
-		Log.d( TAG, "Finished downloading %d recipes" );
-		datasource.close();
-		progressDone();
+		return escapedLastRunTimeStamp;
 	}
 
 	private static final Pattern newRecipePattern = Pattern
@@ -113,12 +121,10 @@ public class RecipeParserThread extends Thread {
 
 		int countRecipes = 0;
 		for ( String thisLine : lines ) {
-			//Log.d( TAG, thisLine );
+			// Log.d( TAG, thisLine );
 			newRecipeMatcher = newRecipePattern.matcher( thisLine );
 			if ( newRecipeMatcher.find() ) {
-				Log.d( TAG,
-						String.format( "Found recipe: %s",
-								newRecipeMatcher.group( 1 ) ) );
+				//Log.d( TAG, String.format( "Found recipe: %s", newRecipeMatcher.group( 1 ) ) );
 				if ( recipe != null ) {
 					addRecipeToCollection( recipe );
 					countRecipes++;
@@ -130,15 +136,15 @@ public class RecipeParserThread extends Thread {
 			} else {
 				titleMatcher = titlePattern.matcher( thisLine );
 				if ( titleMatcher.find() ) {
-					//Log.d( TAG, String.format( "Title: %s",
-					//		titleMatcher.group( 1 ) ) );
+					// Log.d( TAG, String.format( "Title: %s",
+					// titleMatcher.group( 1 ) ) );
 					recipe.setTitle( StringEscapeUtils
 							.unescapeHtml4( titleMatcher.group( 1 ) ) );
 				} else {
 					metaMatcher = metaPattern.matcher( thisLine );
 					if ( metaMatcher.find() ) {
-						//Log.d( TAG, String.format( "Meta-Tags: %s, %s  ",
-						//		metaMatcher.group( 1 ), metaMatcher.group( 2 ) ) );
+						// Log.d( TAG, String.format( "Meta-Tags: %s, %s  ",
+						// metaMatcher.group( 1 ), metaMatcher.group( 2 ) ) );
 						String grt = metaMatcher.group( 1 );
 						String grp = metaMatcher.group( 2 );
 						recipe.addClassifications( grt, grp );
@@ -164,14 +170,15 @@ public class RecipeParserThread extends Thread {
 												"Could not parse image tag %s\nNumberFormatException: %s",
 												thisLine, e.getMessage() ) );
 							}
-							/*if ( ( recipe.getImageWidth() == 0 )
-									|| ( recipe.getImageHeight() == 0 ) ) {
-								Log.e( TAG, String.format(
-										"Image %s has width: %d, height, %d",
-										recipe.getFile().toString(),
-										recipe.getImageWidth(),
-										recipe.getImageHeight() ) );
-							}*/
+							/*
+							 * if ( ( recipe.getImageWidth() == 0 ) || (
+							 * recipe.getImageHeight() == 0 ) ) { Log.e( TAG,
+							 * String.format(
+							 * "Image %s has width: %d, height, %d",
+							 * recipe.getFile().toString(),
+							 * recipe.getImageWidth(), recipe.getImageHeight() )
+							 * ); }
+							 */
 						} else {
 							eofMatcher = eofPattern.matcher( thisLine );
 							if ( eofMatcher.find() ) {
@@ -210,17 +217,17 @@ public class RecipeParserThread extends Thread {
 			}
 		} );
 	}
-	
+
 	private void progressDone() {
 		handler.post( new Runnable() {
 
 			@Override
 			public void run() {
-				progressBar.setVisibility(  ProgressBar.INVISIBLE );
+				progressBar.setVisibility( ProgressBar.INVISIBLE );
 				mainActivity.updateStatus();
 			}
 		} );
-		
+
 	}
 
 }

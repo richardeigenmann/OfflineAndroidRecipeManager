@@ -50,12 +50,6 @@ public class RecipesDataSource {
 		values.put( DBHandler.RECIPE_IMAGE_WIDTH, recipe.getImageWidth() );
 		values.put( DBHandler.RECIPE_IMAGE_HEIGHT, recipe.getImageHeight() );
 		long insertId = database.insert( DBHandler.TABLE_RECIPES, null, values );
-		// Cursor cursor = database.query( DBHandler.TABLE_RECIPES, allColumns,
-		// DBHandler.CLASSIFICATIONS_RECIPE_ID + " = " + insertId, null,
-		// null, null, null );
-		// cursor.moveToFirst();
-		// Recipe newRecipe = cursorToRecipe( cursor );
-		// cursor.close();
 
 		for ( CategoryPair categoryPair : recipe.getClassifications() ) {
 			ContentValues categoryValues = new ContentValues();
@@ -72,7 +66,6 @@ public class RecipesDataSource {
 
 	public void deleteRecipe( String fileId ) {
 		String safeFileId = DatabaseUtils.sqlEscapeString( fileId );
-		// System.out.println( "Recipe deleted where File = " + safeFileId );
 		database.delete( DBHandler.TABLE_RECIPES, DBHandler.RECIPE_FILE + " = "
 				+ safeFileId, null );
 		database.delete( DBHandler.TABLE_CLASSIFICATIONS,
@@ -86,8 +79,7 @@ public class RecipesDataSource {
 		searchString = "%" + searchString + "%";
 
 		String likeClause = DBHandler.RECIPE_TITLE + " like ?";
-		Log.d( TAG, "Like: " + likeClause );
-		Log.d( TAG, "SearchString: " + searchString );
+		Log.d( TAG, "Searching for string: " + searchString );
 		Cursor cursor = database.query( DBHandler.TABLE_RECIPES, allColumns,
 				likeClause, new String[] { searchString }, null, null,
 				DBHandler.RECIPE_TITLE, null );
@@ -99,6 +91,77 @@ public class RecipesDataSource {
 			cursor.moveToNext();
 		}
 		// Make sure to close the cursor
+		cursor.close();
+		close();
+		return recipes;
+	}
+
+	public List<Recipe> searchRecipes( String[] includeWords,
+			String[] limitWords, String[] excludeWords ) {
+
+		StringBuilder inClause = new StringBuilder( "" );
+		{
+			boolean notFirstIteration = false;
+			for ( String s : includeWords ) {
+				if ( notFirstIteration ) {
+					inClause.append( ", " );
+				}
+				inClause.append( DatabaseUtils.sqlEscapeString( s ) );
+			}
+		}
+
+		String excludeClause = "";
+		// only build the exclude clause if there is something to exclude to keep the sql short and fast
+		if ( excludeWords.length > 0 ) {
+			StringBuilder excludeItems = new StringBuilder( "" );
+			boolean notFirstIteration = false;
+			for ( String s : excludeWords ) {
+				if ( notFirstIteration ) {
+					excludeItems.append( ", " );
+				}
+				excludeItems.append( DatabaseUtils.sqlEscapeString( s ) );
+			}
+			excludeClause = " and not exists ( select 1 from "
+					+ DBHandler.TABLE_CLASSIFICATIONS + " where "
+					+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + "="
+					+ DBHandler.TABLE_RECIPES + "." + DBHandler.RECIPE_FILE
+					+ " and " + DBHandler.CLASSIFICATIONS_MEMBER + " in ("
+					+ excludeItems.toString() + ") )";
+		}
+
+		// becomes something like this:
+		// select file, title, imagefilename, imagewidth, imageheight
+		// from recipes r
+		// where exists ( select 1 from classifications c where r.file =
+		// c.recipe_file and member in ('4 Sterne') )
+		// and not exists ( select 1 from classifications c where r.file =
+		// c.recipe_file and member in ('Cakes') )
+		// order by title
+
+		StringBuilder sqlStatement = new StringBuilder( "select "
+				+ DBHandler.RECIPE_FILE + ", " + DBHandler.RECIPE_TITLE + ", "
+				+ DBHandler.RECIPE_IMAGE_FILENAME + ", "
+				+ DBHandler.RECIPE_IMAGE_WIDTH + ", "
+				+ DBHandler.RECIPE_IMAGE_HEIGHT + " from "
+				+ DBHandler.TABLE_RECIPES + " where exists ( select 1 from "
+				+ DBHandler.TABLE_CLASSIFICATIONS + " where "
+				+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + "="
+				+ DBHandler.TABLE_RECIPES + "." + DBHandler.RECIPE_FILE
+				+ " and " + DBHandler.CLASSIFICATIONS_MEMBER + " in ("
+				+ inClause.toString() + ") ) " + excludeClause + " order by "
+				+ DBHandler.RECIPE_TITLE );
+
+		open();
+		Log.d( TAG, sqlStatement.toString() );
+		Cursor cursor = database.rawQuery( sqlStatement.toString(), null );
+
+		cursor.moveToFirst();
+		List<Recipe> recipes = new ArrayList<Recipe>();
+		while ( !cursor.isAfterLast() ) {
+			Recipe recipe = cursorToRecipe( cursor );
+			recipes.add( recipe );
+			cursor.moveToNext();
+		}
 		cursor.close();
 		close();
 		return recipes;
@@ -138,13 +201,11 @@ public class RecipesDataSource {
 		cursor.moveToFirst();
 		while ( !cursor.isAfterLast() ) {
 			String category = cursor.getString( 0 );
-			//Log.d( TAG, category );
 			HashMap<String, String> m = new HashMap<String, String>();
 			m.put( "colorName", category );
 			categories.add( m );
 			cursor.moveToNext();
 		}
-		// Make sure to close the cursor
 		cursor.close();
 		close();
 		return categories;
@@ -168,8 +229,6 @@ public class RecipesDataSource {
 		while ( !cursor.isAfterLast() ) {
 			String newCategory = cursor.getString( 0 );
 			String member = cursor.getString( 1 );
-			//Log.d( TAG, newCategory + " - " + member );
-
 			if ( !( newCategory.equals( currentCategory ) ) ) {
 				// we are on a new category in the table
 				if ( !( secList == null ) ) {
@@ -187,7 +246,6 @@ public class RecipesDataSource {
 
 			cursor.moveToNext();
 		}
-		// Make sure to close the cursor
 		cursor.close();
 		close();
 		return categoryMembers;

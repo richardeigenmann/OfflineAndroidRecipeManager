@@ -39,6 +39,10 @@ public class StaticAppStuff extends Application {
 	 */
 	public static final String PHP_FILTER_SCRIPT = "allrecipes.php";
 	
+	/**
+	 * The php script that tells us how many new recipes there are
+	 */
+	public static final String PHP_QUERY_SCRIPT = "newrecipestats.php";
 	
 
 }

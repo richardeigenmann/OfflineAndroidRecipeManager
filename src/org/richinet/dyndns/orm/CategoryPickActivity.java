@@ -1,7 +1,7 @@
 package org.richinet.dyndns.orm;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -29,8 +29,8 @@ public class CategoryPickActivity extends ExpandableListActivity {
 	private List<HashMap<String, String>> categories;
 	private List<List<HashMap<String, String>>> categoryMembers;
 
-	private ArrayList<String> picks = new ArrayList<String>();
-
+	private HashSet<String> picks = new HashSet<String>();
+	
 	@Override
 	public void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
@@ -40,11 +40,17 @@ public class CategoryPickActivity extends ExpandableListActivity {
 		categories = datasource.getCategories();
 		categoryMembers = datasource.getCategoryMembers();
 
+		String[] includeWords = getIntent().getStringArrayExtra( "picks" );
+		for ( String s : includeWords ) {
+			//Log.d( TAG, s );
+			picks.add( s );
+		}
+
 		expListAdapter = new MySimpleExpandableListAdapter( this, categories, // groupData
-																			// describes
-																			// the
-																			// first-level
-																			// entries
+																				// describes
+																				// the
+																				// first-level
+																				// entries
 				R.layout.group_row, // Layout for the first-level entries
 				new String[] { "colorName" }, // Key in the groupData maps to
 												// display
@@ -87,35 +93,40 @@ public class CategoryPickActivity extends ExpandableListActivity {
 		return true;
 	}
 
-	public void onContentChanged() {
-		super.onContentChanged();
-		Log.d( TAG, "onContentChanged" );
-	}
-
 	public boolean onChildClick( ExpandableListView parent, View v,
 			int groupPosition, int childPosition, long id ) {
-		Log.d( TAG, "onChildClick: " + childPosition );
+		String clickMember = categoryMembers.get( groupPosition )
+				.get( childPosition ).get( "shadeName" );
+		Log.d( TAG, String.format( "onChildClick: %s", clickMember ) );
 		CheckBox cb = (CheckBox) v.findViewById( R.id.check1 );
 		if ( cb != null ) {
-			cb.toggle();
-			Log.d( TAG, String.format(
-					"groupPosition: %d childPosition: %d id: %d",
-					groupPosition, childPosition, id ) );
-			String clickedString = categoryMembers.get( groupPosition )
-					.get( childPosition ).get( "shadeName" );
-			Log.d( TAG, String.format( "String: %s", clickedString ) );
-			picks.add( clickedString );
+			if ( picks.contains( clickMember ) ) {
+				picks.remove( clickMember );
+				cb.setChecked( false );
+			} else {
+				picks.add( clickMember );
+				cb.setChecked( true );
+			}
 		}
 		return false;
 	}
 
-	public void onGroupExpand( int groupPosition ) {
-		Log.d( TAG, "onGroupExpand: " + groupPosition );
-	}
-
+	/**
+	 * Private class to extend the SimpleExpandableListAdapter so that I can
+	 * override the getChildView method where I want to fiddle with the CheckBox
+	 * so that it shows ticked if the row it is on represents a value in the
+	 * picked Set and unchecked otherwise.
+	 * 
+	 * @author Richard Eigenmann
+	 * 
+	 */
 	private class MySimpleExpandableListAdapter extends
 			SimpleExpandableListAdapter {
 
+		/**
+		 * It seems I have to have this constructor though I don't really want
+		 * it.
+		 */
 		public MySimpleExpandableListAdapter( Context context,
 				List<? extends Map<String, ?>> groupData,
 				int expandedGroupLayout, int collapsedGroupLayout,
@@ -129,6 +140,10 @@ public class CategoryPickActivity extends ExpandableListActivity {
 
 		}
 
+		/**
+		 * It seems I have to have this constructor though I don't really want
+		 * it.
+		 */
 		public MySimpleExpandableListAdapter( Context context,
 				List<? extends Map<String, ?>> groupData,
 				int expandedGroupLayout, int collapsedGroupLayout,
@@ -140,6 +155,10 @@ public class CategoryPickActivity extends ExpandableListActivity {
 					childLayout, childFrom, childTo );
 		}
 
+		/**
+		 * It seems I have to have this constructor though I don't really want
+		 * it.
+		 */
 		public MySimpleExpandableListAdapter( Context context,
 				List<? extends Map<String, ?>> groupData, int groupLayout,
 				String[] groupFrom, int[] groupTo,
@@ -150,21 +169,47 @@ public class CategoryPickActivity extends ExpandableListActivity {
 
 		}
 
-		/* (non-Javadoc)
-		 * @see android.widget.SimpleExpandableListAdapter#getChildView(int, int, boolean, android.view.View, android.view.ViewGroup)
+		/**
+		 * This overriden method intercepts the Checkbox and sets it to checked
+		 * if the string of the row is in the picks Set.
+		 * 
+		 * @see android.widget.SimpleExpandableListAdapter#getChildView(int,
+		 *      int, boolean, android.view.View, android.view.ViewGroup)
 		 */
 		@Override
 		public View getChildView( int groupPosition, int childPosition,
 				boolean isLastChild, View convertView, ViewGroup parent ) {
-			View view = super.getChildView( groupPosition, childPosition, isLastChild,
-					convertView, parent );
-			Log.d(TAG, String.format("getChildView groupPosition: %d, childPosition: %d", groupPosition, childPosition));
+			View view = super.getChildView( groupPosition, childPosition,
+					isLastChild, convertView, parent );
+			//String member = categoryMembers.get( groupPosition )
+			//		.get( childPosition ).get( "shadeName" );
+			boolean picked = isPicked( groupPosition, childPosition );
+			/*Log.d( TAG,
+					String.format(
+							"getChildView groupPosition: %d, childPosition: %d member: %s picked: %b",
+							groupPosition, childPosition, member, picked ) );*/
+			CheckBox cb = (CheckBox) view.findViewById( R.id.check1 );
+			cb.setChecked( picked );
+			cb.setClickable( false );
 			return view;
 		}
 
-		
-		
-		
+	}
+
+	/**
+	 * Returns true if the group and child position refer to an item that is in
+	 * the picked Set.
+	 * 
+	 * @param groupPosition
+	 *            the group in the categoryMembers List
+	 * @param childPosition
+	 *            the child in the categoryMembers List
+	 * @return true if this is a picked item, false if not.
+	 */
+	private boolean isPicked( int groupPosition, int childPosition ) {
+		String member = categoryMembers.get( groupPosition )
+				.get( childPosition ).get( "shadeName" );
+		return picks.contains( member );
 	}
 
 }

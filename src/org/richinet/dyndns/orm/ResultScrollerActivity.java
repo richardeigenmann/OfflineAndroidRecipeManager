@@ -20,10 +20,6 @@ public class ResultScrollerActivity extends Activity {
 	 */
 	@SuppressWarnings( "unused" )
 	private static final String TAG = "ResultScrollerActivity";
-	
-	
-
-	
 
 	/** Called when the activity is first created. */
 	@Override
@@ -32,19 +28,28 @@ public class ResultScrollerActivity extends Activity {
 
 		setContentView( R.layout.activity_result_scroller );
 
-			
 		final Intent myIntent = getIntent();
-		final String searchTerm = myIntent.getStringExtra( "searchTerm");
-		
-		
+		final String searchTerm = myIntent.getStringExtra( "searchTerm" );
+
+		final String[] includeWords = myIntent
+				.getStringArrayExtra( "includeWords" );
+		final String[] limitWords = myIntent.getStringArrayExtra( "limitWords" );
+		final String[] excludeWords = myIntent
+				.getStringArrayExtra( "excludeWords" );
+
+		List<Recipe> recipes = null;
 		RecipesDataSource datasource = new RecipesDataSource( this );
-		List<Recipe> recipes = datasource.searchRecipes( searchTerm );
-		
+		if ( includeWords.length == 0 ) {
+			recipes = datasource.searchRecipes( searchTerm );
+		} else {
+			recipes = datasource.searchRecipes( includeWords,
+					limitWords, excludeWords );
+		}
+
 		// Use the SimpleCursorAdapter to show the
 		// elements in a ListView
 		final ArrayAdapter<Recipe> adapter = new ArrayAdapter<Recipe>( this,
-				android.R.layout.simple_list_item_1,
-				recipes );
+				android.R.layout.simple_list_item_1, recipes );
 		ListView listView = (ListView) findViewById( R.id.resultsListView );
 
 		listView.setAdapter( adapter );
