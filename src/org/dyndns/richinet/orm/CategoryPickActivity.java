@@ -1,9 +1,11 @@
-package org.richinet.dyndns.orm;
+package org.dyndns.richinet.orm;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import org.richinet.dyndns.orm.R;
 
 import android.app.ExpandableListActivity;
 import android.content.Context;

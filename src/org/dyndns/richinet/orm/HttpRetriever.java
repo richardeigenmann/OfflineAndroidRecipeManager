@@ -1,4 +1,4 @@
-package org.richinet.dyndns.orm;
+package org.dyndns.richinet.orm;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

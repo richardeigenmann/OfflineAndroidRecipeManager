@@ -1,6 +1,8 @@
-package org.richinet.dyndns.orm;
+package org.dyndns.richinet.orm;
 
 import java.util.List;
+
+import org.richinet.dyndns.orm.R;
 
 import android.app.Activity;
 import android.content.Intent;

@@ -1,4 +1,4 @@
-package org.richinet.dyndns.orm;
+package org.dyndns.richinet.orm;
 
 import java.util.ArrayList;
 import java.util.HashMap;

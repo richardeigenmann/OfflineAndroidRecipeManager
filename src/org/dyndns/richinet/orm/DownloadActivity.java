@@ -1,8 +1,10 @@
-package org.richinet.dyndns.orm;
+package org.dyndns.richinet.orm;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import org.richinet.dyndns.orm.R;
 
 import android.os.Bundle;
 import android.app.Activity;
