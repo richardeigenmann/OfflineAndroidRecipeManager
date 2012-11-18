@@ -2,30 +2,47 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    tools:context=".AdvancedSearchActivity"
     android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/status_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/status_text"
+        android:text="@string/label_include"
         tools:context=".MainActivity" />
+
+    <EditText
+        android:id="@+id/include_words"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/label_search"
+        android:text="@string/label_limit"
         tools:context=".MainActivity" />
 
     <EditText
-        android:id="@+id/searchTerm"
+        android:id="@+id/limit_words"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Enter the recipe search term" >
+        android:focusableInTouchMode="false" />
 
-        <requestFocus />
-    </EditText>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/label_exclude"
+        tools:context=".MainActivity" />
+
+    <EditText
+        android:id="@+id/exclude_words"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:focusable="false"
+        android:focusableInTouchMode="false" />
 
     <Button
         android:id="@+id/button_search"
@@ -33,19 +50,5 @@
         android:layout_height="wrap_content"
         android:focusable="false"
         android:text="Search" />
-
-    <Button
-        android:id="@+id/button_advanced_search"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:focusable="false"
-        android:text="Advanced" />
-
-    <Button
-        android:id="@+id/button_desserts"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:focusable="false"
-        android:text="Desserts" />
 
 </LinearLayout>

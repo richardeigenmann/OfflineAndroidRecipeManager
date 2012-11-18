@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.richinet.dyndns.orm"
     android:versionCode="1"
@@ -14,7 +15,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name="org.dyndns.richinet.orm.MainActivity"
             android:label="@string/title_activity_main" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,16 +23,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--
-        <activity
-            android:name=".gui.PrefsActivity"
-            android:label="@string/titlePrefs" >
-        </activity>
-        -->
-        <activity android:name="ResultScrollerActivity" >
+        <activity android:name="org.dyndns.richinet.orm.ResultScrollerActivity" >
         </activity>
         <activity
-            android:name=".CategoryPickActivity"
+            android:name="org.dyndns.richinet.orm.CategoryPickActivity"
             android:label="@string/title_activity_category_pick" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,13 +35,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".DownloadActivity"
+            android:name="org.dyndns.richinet.orm.DownloadActivity"
             android:label="@string/title_activity_download" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="org.dyndns.richinet.orm.AdvancedSearchActivity"
+            android:label="@string/title_activity_advanced_search" >
         </activity>
     </application>
 

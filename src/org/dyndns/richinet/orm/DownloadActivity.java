@@ -1,15 +1,13 @@
 package org.dyndns.richinet.orm;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 import org.richinet.dyndns.orm.R;
 
-import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -42,7 +40,7 @@ public class DownloadActivity extends Activity {
 				// progressBar.setVisibility( ProgressBar.VISIBLE );
 				button_update.setClickable( false );
 				button_all.setClickable( false );
-				//button_update.setVisibility( Button.INVISIBLE );
+				// button_update.setVisibility( Button.INVISIBLE );
 				progressBar.setMax( newRecipes );
 				Context context = DownloadActivity.this;
 				( new RecipeParserThread( context, prefs, progressBar,
@@ -59,15 +57,23 @@ public class DownloadActivity extends Activity {
 				// progressBar.setVisibility( ProgressBar.VISIBLE );
 				button_all.setClickable( false );
 				button_update.setClickable( false );
-				//button_all.setVisibility( Button.INVISIBLE );
+				// button_all.setVisibility( Button.INVISIBLE );
 				progressBar.setMax( totalRecipes );
 				SharedPreferences.Editor editor = prefs.edit();
 				editor.remove( "lastRunTimeStamp" );
 				editor.commit();
-				
+
 				Context context = DownloadActivity.this;
 				( new RecipeParserThread( context, prefs, progressBar,
 						DownloadActivity.this ) ).start();
+			}
+		} );
+
+		final Button button_refresh = (Button) findViewById( R.id.button_all );
+		button_refresh.setOnClickListener( new View.OnClickListener() {
+			public void onClick( View v ) {
+				updateStatus();
+				askServer();
 			}
 		} );
 
@@ -81,7 +87,7 @@ public class DownloadActivity extends Activity {
 
 	int newRecipes = 0;
 	int totalRecipes = 0;
-	
+
 	public long updateStatus() {
 		RecipesDataSource datasource;
 		datasource = new RecipesDataSource( this );
@@ -101,20 +107,21 @@ public class DownloadActivity extends Activity {
 		datasource.close();
 		return recipesCount;
 	}
-	
+
 	private void askServer() {
 		SharedPreferences prefs = getSharedPreferences(
 				StaticAppStuff.PREFS_NAME, 0 );
-		String escapedLastRunTimeStamp = RecipeParserThread.getLastRunTimeStamp( prefs );
+		String escapedLastRunTimeStamp = RecipeParserThread
+				.getLastRunTimeStamp( prefs );
 		String url = prefs.getString( "serverurl",
 				StaticAppStuff.DEFAULT_WEBSERVER );
 		String fullUrl = url + StaticAppStuff.PHP_QUERY_SCRIPT + "?startfrom="
 				+ escapedLastRunTimeStamp;
 		Log.d( TAG, "fullUrl: " + fullUrl );
 		ArrayList<String> lines = HttpRetriever.retrieveFromURL( fullUrl );
-		String[] counts = lines.get( 0 ).split("/");
+		String[] counts = lines.get( 0 ).split( "/" );
 		newRecipes = Integer.parseInt( counts[0] );
 		totalRecipes = Integer.parseInt( counts[1] );
 	}
-	
+
 }
