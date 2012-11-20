@@ -63,6 +63,31 @@ public class MainActivity extends Activity {
 				MainActivity.this.startActivity( advancedSearchIntent );
 			}
 		} );
+		final Button button_34sterne = (Button) findViewById( R.id.button_34sterne );
+		button_34sterne.setOnClickListener( new View.OnClickListener() {
+			public void onClick( View v ) {
+				Intent searchIntent = new Intent( MainActivity.this,
+						ResultScrollerActivity.class );
+				searchIntent.putExtra( "searchTerm", "" );
+				searchIntent.putExtra( "includeWords", new String[] {"3 Sterne", "4 Sterne"} );
+				searchIntent.putExtra( "limitWords", new String[0] );
+				searchIntent.putExtra( "excludeWords", new String[0] );
+				MainActivity.this.startActivity( searchIntent );
+			}
+		} );
+		final Button button_hauptpgerichte = (Button) findViewById( R.id.button_hauptpgerichte );
+		button_hauptpgerichte.setOnClickListener( new View.OnClickListener() {
+			public void onClick( View v ) {
+				Intent searchIntent = new Intent( MainActivity.this,
+						ResultScrollerActivity.class );
+				searchIntent.putExtra( "searchTerm", "" );
+				searchIntent.putExtra( "includeWords", new String[] {"Hauptgerichte"} );
+				searchIntent.putExtra( "limitWords", new String[0] );
+				searchIntent.putExtra( "excludeWords", new String[0] );
+				MainActivity.this.startActivity( searchIntent );
+			}
+		} );
+
 		
 		final Button button_desserts = (Button) findViewById( R.id.button_desserts );
 		button_desserts.setOnClickListener( new View.OnClickListener() {
@@ -76,6 +101,7 @@ public class MainActivity extends Activity {
 				MainActivity.this.startActivity( searchIntent );
 			}
 		} );
+		
 		
 		
 	}

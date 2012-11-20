@@ -73,6 +73,11 @@ public class RecipesDataSource {
 				null );
 	}
 
+	public void wipeDatabase() {
+		database.delete( DBHandler.TABLE_RECIPES, null, null );
+		database.delete( DBHandler.TABLE_CLASSIFICATIONS, null, null );
+	}
+
 	public List<Recipe> searchRecipes( String searchString ) {
 		open();
 		List<Recipe> recipes = new ArrayList<Recipe>();
@@ -111,7 +116,8 @@ public class RecipesDataSource {
 		}
 
 		String excludeClause = "";
-		// only build the exclude clause if there is something to exclude to keep the sql short and fast
+		// only build the exclude clause if there is something to exclude to
+		// keep the sql short and fast
 		if ( excludeWords.length > 0 ) {
 			StringBuilder excludeItems = new StringBuilder( "" );
 			boolean notFirstIteration = false;

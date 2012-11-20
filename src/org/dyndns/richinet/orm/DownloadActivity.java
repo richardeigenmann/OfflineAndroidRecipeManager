@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -37,10 +38,6 @@ public class DownloadActivity extends Activity {
 				SharedPreferences prefs = getSharedPreferences(
 						StaticAppStuff.PREFS_NAME, 0 );
 				final ProgressBar progressBar = (ProgressBar) findViewById( R.id.download_progress_bar );
-				// progressBar.setVisibility( ProgressBar.VISIBLE );
-				button_update.setClickable( false );
-				button_all.setClickable( false );
-				// button_update.setVisibility( Button.INVISIBLE );
 				progressBar.setMax( newRecipes );
 				Context context = DownloadActivity.this;
 				( new RecipeParserThread( context, prefs, progressBar,
@@ -50,18 +47,12 @@ public class DownloadActivity extends Activity {
 
 		button_all.setOnClickListener( new View.OnClickListener() {
 			public void onClick( View v ) {
-				Log.d( TAG, "Update Button clicked" );
+				Log.d( TAG, "Download all Button clicked" );
+				final ProgressBar progressBar = (ProgressBar) findViewById( R.id.download_progress_bar );
+				progressBar.setMax( totalRecipes );
+				clearLastDownloadDate();
 				SharedPreferences prefs = getSharedPreferences(
 						StaticAppStuff.PREFS_NAME, 0 );
-				final ProgressBar progressBar = (ProgressBar) findViewById( R.id.download_progress_bar );
-				// progressBar.setVisibility( ProgressBar.VISIBLE );
-				button_all.setClickable( false );
-				button_update.setClickable( false );
-				// button_all.setVisibility( Button.INVISIBLE );
-				progressBar.setMax( totalRecipes );
-				SharedPreferences.Editor editor = prefs.edit();
-				editor.remove( "lastRunTimeStamp" );
-				editor.commit();
 
 				Context context = DownloadActivity.this;
 				( new RecipeParserThread( context, prefs, progressBar,
@@ -69,14 +60,29 @@ public class DownloadActivity extends Activity {
 			}
 		} );
 
-		final Button button_refresh = (Button) findViewById( R.id.button_all );
+		final Button button_refresh = (Button) findViewById( R.id.button_refresh );
 		button_refresh.setOnClickListener( new View.OnClickListener() {
 			public void onClick( View v ) {
 				updateStatus();
-				askServer();
 			}
 		} );
 
+		
+
+		final Button button_wipe = (Button) findViewById( R.id.button_wipe );
+		button_wipe.setOnClickListener( new View.OnClickListener() {
+			public void onClick( View v ) {
+				Log.d( TAG, "Wipe Button clicked" );
+				clearLastDownloadDate();
+				RecipesDataSource datasource = new RecipesDataSource( getBaseContext() );
+				datasource.open();
+				datasource.wipeDatabase();
+				datasource.close();
+				updateStatus();
+			}
+		} );
+
+		
 	}
 
 	@Override
@@ -85,18 +91,28 @@ public class DownloadActivity extends Activity {
 		return true;
 	}
 
-	int newRecipes = 0;
-	int totalRecipes = 0;
+	private void clearLastDownloadDate() {
+		SharedPreferences prefs = getSharedPreferences(
+				StaticAppStuff.PREFS_NAME, 0 );
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.remove( "lastRunTimeStamp" );
+		editor.commit();
+	}
+	
+	
+	int newRecipes = -1;
+	int totalRecipes = -1;
+	long recipesCount = -1;
 
-	public long updateStatus() {
-		RecipesDataSource datasource;
-		datasource = new RecipesDataSource( this );
-		datasource.open();
+	public void updateStatus() {
+		askWebServer();
+		askDB();
+	}
+
+	private void updateStatusWidget() {
 		final TextView statusText = (TextView) findViewById( R.id.status_text );
 		SharedPreferences prefs = getSharedPreferences(
 				StaticAppStuff.PREFS_NAME, 0 );
-		long recipesCount = datasource.fetchRecipesCount();
-		askServer();
 		statusText
 				.setText( String
 						.format(
@@ -104,24 +120,47 @@ public class DownloadActivity extends Activity {
 								recipesCount,
 								prefs.getString( "lastRunTimeStamp", "never" ),
 								newRecipes, totalRecipes ) );
-		datasource.close();
-		return recipesCount;
 	}
 
-	private void askServer() {
-		SharedPreferences prefs = getSharedPreferences(
-				StaticAppStuff.PREFS_NAME, 0 );
-		String escapedLastRunTimeStamp = RecipeParserThread
-				.getLastRunTimeStamp( prefs );
-		String url = prefs.getString( "serverurl",
-				StaticAppStuff.DEFAULT_WEBSERVER );
-		String fullUrl = url + StaticAppStuff.PHP_QUERY_SCRIPT + "?startfrom="
-				+ escapedLastRunTimeStamp;
-		Log.d( TAG, "fullUrl: " + fullUrl );
-		ArrayList<String> lines = HttpRetriever.retrieveFromURL( fullUrl );
-		String[] counts = lines.get( 0 ).split( "/" );
-		newRecipes = Integer.parseInt( counts[0] );
-		totalRecipes = Integer.parseInt( counts[1] );
+	private void askDB() {
+		RecipesDataSource datasource;
+		datasource = new RecipesDataSource( this );
+		datasource.open();
+		recipesCount = datasource.fetchRecipesCount();
+		datasource.close();
+	}
+
+	private void askWebServer() {
+		final Handler h = new Handler();
+		Thread r = new Thread() {
+
+			@Override
+			public void run() {
+				SharedPreferences prefs = getSharedPreferences(
+						StaticAppStuff.PREFS_NAME, 0 );
+				String escapedLastRunTimeStamp = RecipeParserThread
+						.getLastRunTimeStamp( prefs );
+				String url = prefs.getString( "serverurl",
+						StaticAppStuff.DEFAULT_WEBSERVER );
+				String fullUrl = url + StaticAppStuff.PHP_QUERY_SCRIPT
+						+ "?startfrom=" + escapedLastRunTimeStamp;
+				Log.d( TAG, "fullUrl: " + fullUrl );
+				ArrayList<String> lines = HttpRetriever
+						.retrieveFromURL( fullUrl );
+				String[] counts = lines.get( 0 ).split( "/" );
+				newRecipes = Integer.parseInt( counts[0] );
+				totalRecipes = Integer.parseInt( counts[1] );
+				h.post( new Runnable() {
+
+					@Override
+					public void run() {
+						updateStatusWidget();
+
+					}
+				} );
+			}
+		};
+		r.start();
 	}
 
 }

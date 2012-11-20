@@ -9,6 +9,7 @@
     <string name="button_update">Download new</string>
     <string name="button_all">Download all</string>
     <string name="button_refresh">Refresh</string>
+    <string name="button_wipe">Truncate Database</string>
     <string name="label_search">Search:</string>
     <string name="label_include">Include</string>
     <string name="label_limit">Limit</string>
@@ -21,7 +22,7 @@
     <string name="button_ok">OK</string>
     <string name="button_clear">Clear</string>
     <string name="hello_world">Hello world!</string>
-    <string name="title_activity_download">Download Recipes</string>
+    <string name="title_activity_download">Recipe Maintenance</string>
     <string name="title_activity_advanced_search">Advanced Search</string>
 
 </resources>

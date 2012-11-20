@@ -42,6 +42,20 @@
         android:text="Advanced" />
 
     <Button
+        android:id="@+id/button_34sterne"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="false"
+        android:text="3 und 4 Sterne" />
+
+    <Button
+        android:id="@+id/button_hauptpgerichte"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="false"
+        android:text="Hauptgerichte" />
+
+    <Button
         android:id="@+id/button_desserts"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

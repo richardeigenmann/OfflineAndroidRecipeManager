@@ -38,4 +38,11 @@
         android:text="@string/button_refresh"
         tools:context=".DownloadActivity" />
 
+    <Button
+        android:id="@+id/button_wipe"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_wipe"
+        tools:context=".DownloadActivity" />
+
 </LinearLayout>
