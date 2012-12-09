@@ -110,6 +110,8 @@ public class RecipesDataSource {
 			for ( String s : includeWords ) {
 				if ( notFirstIteration ) {
 					inClause.append( ", " );
+				} else {
+					notFirstIteration = true;
 				}
 				inClause.append( DatabaseUtils.sqlEscapeString( s ) );
 			}
@@ -124,6 +126,8 @@ public class RecipesDataSource {
 			for ( String s : excludeWords ) {
 				if ( notFirstIteration ) {
 					excludeItems.append( ", " );
+				} else {
+					notFirstIteration = true;
 				}
 				excludeItems.append( DatabaseUtils.sqlEscapeString( s ) );
 			}
