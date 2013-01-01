@@ -1,7 +1,6 @@
 package org.dyndns.richinet.orm;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import android.util.Log;
 
@@ -29,16 +28,21 @@ public class Recipe {
 		this.title = title;
 	}
 
+	/**
+	 * The filename of the recipe such as Rcp123.htm
+	 */
 	private String file;
 
 	/**
-	 * @return the file
+	 * @return the file of the recipe as a string
 	 */
 	public String getFile() {
 		return file;
 	}
 
 	/**
+	 * Sets the file of the recipe such as Rcp123.htm
+	 * 
 	 * @param file
 	 *            the file to set
 	 */
@@ -46,9 +50,14 @@ public class Recipe {
 		this.file = file;
 	}
 
+	/**
+	 * The filename of the image of the recipe
+	 */
 	private String imageFilename;
 
 	/**
+	 * Returns the filename of the image of the recipe
+	 * 
 	 * @return the imageFilename
 	 */
 	public String getImageFilename() {
@@ -56,6 +65,8 @@ public class Recipe {
 	}
 
 	/**
+	 * Saves the filename of the image of the recipes like Rcp123.jpg
+	 * 
 	 * @param imageFilename
 	 *            the imageFilename to set
 	 */
@@ -64,9 +75,14 @@ public class Recipe {
 		setHasImage( true );
 	}
 
-	int imageWidth = 0;
+	/**
+	 * The width of the image
+	 */
+	private int imageWidth = 0;
 
 	/**
+	 * Returns the width of the image
+	 * 
 	 * @return the imageWidth
 	 */
 	public int getImageWidth() {
@@ -74,6 +90,8 @@ public class Recipe {
 	}
 
 	/**
+	 * Sets the width of the image
+	 * 
 	 * @param imageWidth
 	 *            the imageWidth to set
 	 */
@@ -82,6 +100,8 @@ public class Recipe {
 	}
 
 	/**
+	 * Returns the image height
+	 * 
 	 * @return the imageHeight
 	 */
 	public int getImageHeight() {
@@ -89,6 +109,8 @@ public class Recipe {
 	}
 
 	/**
+	 * Sets the image height
+	 * 
 	 * @param imageHeight
 	 *            the imageHeight to set
 	 */
@@ -96,25 +118,39 @@ public class Recipe {
 		this.imageHeight = imageHeight;
 	}
 
-	int imageHeight = 0;
-
-	boolean hasImage = false;
+	/**
+	 * The image height
+	 */
+	private int imageHeight = 0;
 
 	/**
-	 * @return the image
+	 * A flag whether the recipe has an image
+	 */
+	private boolean hasImage = false;
+
+	/**
+	 * Returns whether the recipe has an image
+	 * 
+	 * @return true if the recipe has an image
 	 */
 	public boolean hasImage() {
 		return hasImage;
 	}
 
 	/**
-	 * @param image
-	 *            the image to set
+	 * Sets whether the recipe has an image
+	 * 
+	 * @param hasImage
+	 *            set to true if the recipe has an image
+	 * 
 	 */
-	public void setHasImage( boolean image ) {
-		hasImage = image;
+	public void setHasImage( boolean hasImage ) {
+		this.hasImage = hasImage;
 	}
 
+	/**
+	 * A list of classifications that this recipe holds
+	 */
 	private ArrayList<CategoryPair> classifications = new ArrayList<CategoryPair>();
 
 	/**
@@ -131,7 +167,10 @@ public class Recipe {
 		classifications.add( new CategoryPair( key, value ) );
 	}
 
-	// Will be used by the ArrayAdapter in the ListView
+	/**
+	 * Returns the name of the recipe. Is used by the ArrayAdapter in the
+	 * resultScroller activity
+	 */
 	@Override
 	public String toString() {
 		return getTitle();

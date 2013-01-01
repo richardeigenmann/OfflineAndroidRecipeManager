@@ -1,11 +1,11 @@
 package org.dyndns.richinet.orm;
 
-import org.richinet.dyndns.orm.R;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -131,11 +131,31 @@ public class AdvancedSearchActivity extends Activity {
 		}
 	}
 
+	
+	/**
+	 * Inflate an option menu
+	 */
 	@Override
 	public boolean onCreateOptionsMenu( Menu menu ) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate( R.menu.activity_advanced_search, menu );
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate( R.menu.option_menu, menu );
 		return true;
+	}
+
+	/**
+	 * Handle the option pick event
+	 */
+	@Override
+	public boolean onOptionsItemSelected( MenuItem item ) {
+		switch ( item.getItemId() ) {
+		case R.id.option_menu_item_maintenance:
+			Intent gotoMaintenanceIntent = new Intent( AdvancedSearchActivity.this,
+					MaintenanceActivity.class );
+			AdvancedSearchActivity.this.startActivity( gotoMaintenanceIntent );
+			return true;
+		default:
+			return super.onOptionsItemSelected( item );
+		}
 	}
 
 }

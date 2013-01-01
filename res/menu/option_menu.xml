@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-
     <item
-        android:id="@+id/itemPrefs"
+        android:id="@+id/option_menu_item_maintenance"
         android:icon="@android:drawable/ic_menu_preferences"
-        android:title="@string/titlePrefs">
-    </item>  
+        android:title="@string/option_menu_item_maintenance">
+    </item>
+
 </menu>

@@ -1,6 +1,7 @@
 package org.dyndns.richinet.orm;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -14,8 +15,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import android.util.Log;
 
 public class HttpRetriever {
-	
+
 	private static final String TAG = "HttpRetriever";
+
 	/**
 	 * Connects to the url and returns the result as a StringBuilder object
 	 * 
@@ -23,17 +25,15 @@ public class HttpRetriever {
 	 *            The URL to read
 	 * @return the response
 	 */
-	public static ArrayList<String> retrieveFromURL( String url ) {
+	public static ArrayList<String> retrieveFromURL( String url )
+			throws IllegalArgumentException, IOException {
+		Log.i( TAG, "Retrieving data from URL: " + url );
 		InputStream is = null;
-		try {
-			HttpClient httpClient = new DefaultHttpClient();
-			HttpPost httpPost = new HttpPost( url );
-			HttpResponse response = httpClient.execute( httpPost );
-			HttpEntity entity = response.getEntity();
-			is = entity.getContent();
-		} catch ( Exception e ) {
-			Log.e( TAG, "Error in http connection: " + e.toString() );
-		}
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpPost httpPost = new HttpPost( url );
+		HttpResponse response = httpClient.execute( httpPost );
+		HttpEntity entity = response.getEntity();
+		is = entity.getContent();
 
 		ArrayList<String> lines = new ArrayList<String>();
 		try {
@@ -48,6 +48,9 @@ public class HttpRetriever {
 		} catch ( Exception e ) {
 			Log.e( TAG, "Error converting result: " + e.toString() );
 		}
+		Log.i( TAG,
+				String.format( "Retrieved %d lines from from URL: %s",
+						lines.size(), url ) );
 		return lines;
 	}
 

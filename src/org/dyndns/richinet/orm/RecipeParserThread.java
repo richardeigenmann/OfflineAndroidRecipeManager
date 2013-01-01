@@ -1,8 +1,6 @@
 package org.dyndns.richinet.orm;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -11,30 +9,27 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.util.Log;
-import android.widget.ProgressBar;
 
 public class RecipeParserThread extends Thread {
 
+	/**
+	 * Tag for the logger
+	 */
 	private static final String TAG = "RecipeParserThread";
 
-	StaticAppStuff app;
+	//StaticAppStuff app;
 
 	private RecipesDataSource datasource;
-	private SharedPreferences prefs;
 	private Handler handler = new Handler();
-	private ProgressBar progressBar;
-	private DownloadActivity mainActivity;
+	private DownloaderInterface downloaderCallback;
 	private Context context;
 
-	public RecipeParserThread( Context context, SharedPreferences prefs,
-			ProgressBar progressBar, DownloadActivity mainActivity ) {
+	public RecipeParserThread( Context context,
+			DownloaderInterface downloaderCallback ) {
 		this.context = context;
-		this.prefs = prefs;
-		this.progressBar = progressBar;
-		this.mainActivity = mainActivity;
+		this.downloaderCallback = downloaderCallback;
 	}
 
 	/**
@@ -43,51 +38,27 @@ public class RecipeParserThread extends Thread {
 
 	@Override
 	public void run() {
-		String escapedLastRunTimeStamp = getLastRunTimeStamp( prefs );
-		String url = prefs.getString( "serverurl",
-				StaticAppStuff.DEFAULT_WEBSERVER );
-		String fullUrl = url + StaticAppStuff.PHP_FILTER_SCRIPT + "?startfrom="
-				+ escapedLastRunTimeStamp;
-		Log.d( TAG, "fullUrl: " + fullUrl );
-		ArrayList<String> lines = HttpRetriever.retrieveFromURL( fullUrl );
+		String fullUrl = StaticAppStuff.getRecipesDataUrl( context );
+		ArrayList<String> lines = null;
+		try {
+			lines = HttpRetriever.retrieveFromURL( fullUrl );
+		} catch ( IllegalArgumentException e ) {
+			e.printStackTrace();
+			Log.e( TAG, "IllegalArgumentException: " + e.toString() );
+		} catch ( IOException e ) {
+			e.printStackTrace();
+			Log.e( TAG, "IOException: " + e.toString() );
+		}
 
 		datasource = new RecipesDataSource( context );
 		datasource.open();
 		int parsedRecipes = parse( lines );
 		if ( parsedRecipes > 0 ) {
-			SharedPreferences.Editor editor = prefs.edit();
-			SimpleDateFormat sdf = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
-			String rememberStartTimeStamp = sdf.format( new Date() );
-			editor.putString( "lastRunTimeStamp", rememberStartTimeStamp );
-			editor.commit();
+			StaticAppStuff.saveLastDownloadTimestamp( context, new Date() );
 		}
 		Log.d( TAG, "Finished downloading %d recipes" );
 		datasource.close();
 		progressDone();
-	}
-
-	/**
-	 * Returns the URLencoded version of the last time the database was
-	 * refreshed.
-	 * 
-	 * @param prefs
-	 *            The preferences object where the "lastRunTimeStamp" will be
-	 *            taken or Jan 1 2000 if not found.
-	 * @return A urlencoded version of the last timestamp.
-	 */
-	public static String getLastRunTimeStamp( SharedPreferences prefs ) {
-		String lastRunTimeStamp = prefs.getString( "lastRunTimeStamp",
-				"2000-01-01 00:00:00" );
-		String escapedLastRunTimeStamp = "";
-		try {
-			escapedLastRunTimeStamp = URLEncoder.encode( lastRunTimeStamp,
-					"UTF-8" );
-		} catch ( UnsupportedEncodingException e ) {
-			Log.e( TAG, e.getMessage() );
-			e.printStackTrace();
-		}
-		Log.d( TAG, "escapedLastRunTimeStamp: " + escapedLastRunTimeStamp );
-		return escapedLastRunTimeStamp;
 	}
 
 	private static final Pattern newRecipePattern = Pattern
@@ -124,7 +95,8 @@ public class RecipeParserThread extends Thread {
 			// Log.d( TAG, thisLine );
 			newRecipeMatcher = newRecipePattern.matcher( thisLine );
 			if ( newRecipeMatcher.find() ) {
-				//Log.d( TAG, String.format( "Found recipe: %s", newRecipeMatcher.group( 1 ) ) );
+				// Log.d( TAG, String.format( "Found recipe: %s",
+				// newRecipeMatcher.group( 1 ) ) );
 				if ( recipe != null ) {
 					addRecipeToCollection( recipe );
 					countRecipes++;
@@ -212,8 +184,7 @@ public class RecipeParserThread extends Thread {
 
 			@Override
 			public void run() {
-				progressBar.incrementProgressBy( 1 );
-
+				downloaderCallback.progressStep();
 			}
 		} );
 	}
@@ -223,8 +194,7 @@ public class RecipeParserThread extends Thread {
 
 			@Override
 			public void run() {
-				progressBar.setVisibility( ProgressBar.INVISIBLE );
-				mainActivity.updateStatus();
+				downloaderCallback.downloadDone();
 			}
 		} );
 

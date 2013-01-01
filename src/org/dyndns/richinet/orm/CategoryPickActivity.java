@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.richinet.dyndns.orm.R;
-
 import android.app.ExpandableListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -89,11 +87,6 @@ public class CategoryPickActivity extends ExpandableListActivity {
 
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu( Menu menu ) {
-		getMenuInflater().inflate( R.menu.activity_category_pick, menu );
-		return true;
-	}
 
 	public boolean onChildClick( ExpandableListView parent, View v,
 			int groupPosition, int childPosition, long id ) {

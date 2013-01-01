@@ -10,10 +10,9 @@ public class DBHandler extends SQLiteOpenHelper {
 	private static final String TAG = DBHandler.class.getName();
 
 	private static final String DATABASE_NAME = "recipes.db";
-	private static final int DATABASE_VERSION = 8;
+	private static final int DATABASE_VERSION = 9;
 
 	public static final String TABLE_RECIPES = "recipes";
-	public static final String INDEX_RECIPE_TITLE = "recipe_title";
 	public static final String RECIPE_TITLE = "title";
 	public static final String RECIPE_FILE = "file";
 	public static final String RECIPE_IMAGE_FILENAME = "imagefilename";
@@ -26,12 +25,12 @@ public class DBHandler extends SQLiteOpenHelper {
 			+ RECIPE_IMAGE_WIDTH + " int not null, " + RECIPE_IMAGE_HEIGHT
 			+ " int not null" + ");";
 
+	public static final String INDEX_RECIPE_TITLE = "recipe_title";
 	private static final String INDEX_RECIPES_CREATE = "create index "
 			+ INDEX_RECIPE_TITLE + " on " + TABLE_RECIPES + "(" + RECIPE_TITLE
-			+ " asc )";
+			+ " asc );";
 
 	public static final String TABLE_CLASSIFICATIONS = "classifications";
-
 	public static final String CLASSIFICATIONS_RECIPE_FILE = "recipe_file";
 	public static final String CLASSIFICATIONS_CATEGORY = "category";
 	public static final String CLASSIFICATIONS_MEMBER = "member";
@@ -43,12 +42,49 @@ public class DBHandler extends SQLiteOpenHelper {
 
 	private static final String INDEX_CLASSIFICATIONS_CREATE = "create index "
 			+ INDEX_CLASSIFICATIONS_MEMBER + " on " + TABLE_CLASSIFICATIONS
-			+ "(" + CLASSIFICATIONS_MEMBER + " asc )";
+			+ "(" + CLASSIFICATIONS_MEMBER + " asc );";
 
+	public static final String TABLE_SEARCHES = "searches";
+	public static final String SEARCH_ID = "search_id";
+	public static final String SEARCH_DESCRIPTION = "description";
+	private static final String TABLE_SEARCHES_CREATE = "create table "
+			+ TABLE_SEARCHES + "(" + SEARCH_ID
+			+ " integer primary key autoincrement, " + SEARCH_DESCRIPTION
+			+ " text not null " + ");";
+
+	public static final String INDEX_SEARCHES_DESCRIPTION = "searches_description";
+	private static final String INDEX_SEARCHES_CREATE = "create index "
+			+ INDEX_SEARCHES_DESCRIPTION + " on " + TABLE_SEARCHES + "("
+			+ SEARCH_DESCRIPTION + " asc );";
+
+	public static final String TABLE_SEARCHPARAMS = "search_parameters";
+	public static final String SEARCHPARAMS_SEARCH_ID = "search_id";
+	public static final String SEARCHPARAMS_SEARCH_FIELD = "field";
+	public static final String SEARCHPARAMS_SEARCH_TERM = "searchterm";
+	private static final String TABLE_SEARCHPARAMS_CREATE = "create table "
+			+ TABLE_SEARCHPARAMS + "(" + SEARCHPARAMS_SEARCH_ID
+			+ " integer primary key not null, " + SEARCHPARAMS_SEARCH_FIELD
+			+ " text not null, " + SEARCHPARAMS_SEARCH_TERM + " text not null "
+			+ ");";
+
+	
+	/**
+	 * Remember the Context
+	 */
+	private Context context;
+	
+	/**
+	 * Constructor
+	 * @param context The context
+	 */
 	public DBHandler( Context context ) {
 		super( context, DATABASE_NAME, null, DATABASE_VERSION );
+		this.context = context;
 	}
 
+	/**
+	 * Sets up the tables and indexes
+	 */
 	@Override
 	public void onCreate( SQLiteDatabase database ) {
 		Log.d( TAG, TABLE_RECIPES_CREATE );
@@ -59,8 +95,34 @@ public class DBHandler extends SQLiteOpenHelper {
 		database.execSQL( TABLE_CLASSIFICATIONS_CREATE );
 		Log.d( TAG, INDEX_CLASSIFICATIONS_CREATE );
 		database.execSQL( INDEX_CLASSIFICATIONS_CREATE );
+		Log.d( TAG, TABLE_SEARCHES_CREATE );
+		database.execSQL( TABLE_SEARCHES_CREATE );
+		Log.d( TAG, INDEX_SEARCHES_CREATE );
+		database.execSQL( INDEX_SEARCHES_CREATE );
+		Log.d( TAG, TABLE_SEARCHPARAMS_CREATE );
+		database.execSQL( TABLE_SEARCHPARAMS_CREATE );
+		insertPredefinedSearches( database );
+		
+		StaticAppStuff.wipeLastDownloadTimestamp( context );
 	}
 
+	private void insertPredefinedSearches( SQLiteDatabase database ) {
+		String insert = "insert into " + TABLE_SEARCHES + " (" + SEARCH_DESCRIPTION + ") values ( \"3 und 4 Sterne\")";
+		Log.d( TAG, insert );
+		database.execSQL( insert );
+
+		insert = "insert into " + TABLE_SEARCHES + " (" + SEARCH_DESCRIPTION + ") values ( \"Hauptgerichte\")";
+		Log.d( TAG, insert );
+		database.execSQL( insert );
+
+		insert = "insert into " + TABLE_SEARCHES + " (" + SEARCH_DESCRIPTION + ") values ( \"Desserts\")";
+		Log.d( TAG, insert );
+		database.execSQL( insert );
+	}
+	
+	/**
+	 * Handles upgrades by dropping the old indexes and tables and creating new ones.
+	 */
 	@Override
 	public void onUpgrade( SQLiteDatabase database, int oldVersion,
 			int newVersion ) {
@@ -71,7 +133,23 @@ public class DBHandler extends SQLiteOpenHelper {
 		database.execSQL( "DROP INDEX IF EXISTS "
 				+ INDEX_CLASSIFICATIONS_MEMBER );
 		database.execSQL( "DROP TABLE IF EXISTS " + TABLE_CLASSIFICATIONS );
+		database.execSQL( "DROP INDEX IF EXISTS "
+				+ INDEX_SEARCHES_DESCRIPTION );
+		database.execSQL( "DROP INDEX IF EXISTS " + INDEX_SEARCHES_DESCRIPTION );
+		database.execSQL( "DROP TABLE IF EXISTS " + TABLE_SEARCHES );
+		database.execSQL( "DROP TABLE IF EXISTS " + TABLE_SEARCHPARAMS );
+		
 		onCreate( database );
 	}
 
+	/**
+	 * This method wipes all the recipes from the database and resets the last download timestamp
+	 * @param database The database to wipe
+	 */
+	public static void truncateRecipes( SQLiteDatabase database, Context context ) {
+		database.delete( TABLE_RECIPES, null, null );
+		database.delete( TABLE_CLASSIFICATIONS, null, null );
+		StaticAppStuff.wipeLastDownloadTimestamp( context );
+	}
+	
 }

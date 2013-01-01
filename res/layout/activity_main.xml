@@ -4,19 +4,6 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/status_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/status_text"
-        tools:context=".MainActivity" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/label_search"
-        tools:context=".MainActivity" />
-
     <EditText
         android:id="@+id/searchTerm"
         android:layout_width="match_parent"
@@ -27,19 +14,26 @@
         <requestFocus />
     </EditText>
 
-    <Button
-        android:id="@+id/button_search"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:focusable="false"
-        android:text="Search" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp" >
 
-    <Button
-        android:id="@+id/button_advanced_search"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:focusable="false"
-        android:text="Advanced" />
+        <Button
+            android:id="@+id/button_search"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/button_search" />
+
+        <Button
+            android:id="@+id/button_advanced_search"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/button_advanced_search" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/button_34sterne"
@@ -61,5 +55,11 @@
         android:layout_height="wrap_content"
         android:focusable="false"
         android:text="Desserts" />
+
+    <ListView
+        android:id="@+id/searchesListView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+    </ListView>
 
 </LinearLayout>

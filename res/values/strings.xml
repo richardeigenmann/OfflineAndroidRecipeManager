@@ -1,15 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- App Title -->
     <string name="app_name">Richi\'s Rezeptsammlung</string>
-    <string name="menu_settings">Settings</string>
-    <string name="menu_download">Update</string>
+
+    <!-- First run Activity -->
+    <string name="title_activity_first_run">Richi\'s Rezeptsammlung - First Run</string>
+    <string name="welcome">Welcome to Richi\'s Recipe Collection. Please download the index of the recipes to your device.</string>
+    <string name="button_download">Download</string>
+    <string name="button_download_downloading">Downloading&#8230;</string>
+    <string name="button_goto_search">Go to Search</string>
+
+    <!-- Maintenance option item -->
+    <string name="option_menu_item_maintenance">Maintenance</string>
+
+    <!-- Maintenance activity -->
+    <string name="title_activity_maintenance">Maintenance</string>
+    <string name="button_refresh">Refresh</string>
+    <string name="button_clear_timestamp">Clear Last Download Timestamp</string>
+    <string name="button_wipe_db">Truncate Database</string>
+    <string name="button_go_firstrun">Goto First Run page</string>
+    
+
+    <!-- MainActivity -->
     <string name="title_activity_main">Richi\'s Rezeptsammlung</string>
+    <string name="button_search">Search</string>
+    <string name="button_advanced_search">Advanced Search</string>
+
+    <!-- Advanced search activity -->
+    <string name="title_activity_advanced_search">Advanced Search</string>
+
+    <!-- Result Scroller Activity -->
+    <string name="title_activity_result_scroller">Search Results</string>
+
+    <!-- Unstortd stuff -->
+    <string name="menu_settings">Settings</string>
     <string name="status_text">Status</string>
     <string name="button_update">Download new</string>
     <string name="button_all">Download all</string>
-    <string name="button_refresh">Refresh</string>
-    <string name="button_wipe">Truncate Database</string>
     <string name="label_search">Search:</string>
     <string name="label_include">Include</string>
     <string name="label_limit">Limit</string>
@@ -21,8 +49,6 @@
     <string name="main_no_items">No items</string>
     <string name="button_ok">OK</string>
     <string name="button_clear">Clear</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="title_activity_download">Recipe Maintenance</string>
-    <string name="title_activity_advanced_search">Advanced Search</string>
+    <string name="activity_status_text">About to connect to server&#8230;</string>
 
 </resources>

@@ -73,9 +73,8 @@ public class RecipesDataSource {
 				null );
 	}
 
-	public void wipeDatabase() {
-		database.delete( DBHandler.TABLE_RECIPES, null, null );
-		database.delete( DBHandler.TABLE_CLASSIFICATIONS, null, null );
+	public void truncateRecipes( Context context ) {
+		DBHandler.truncateRecipes( database, context );
 	}
 
 	public List<Recipe> searchRecipes( String searchString ) {
@@ -197,6 +196,21 @@ public class RecipesDataSource {
 				.queryNumEntries( database, DBHandler.TABLE_RECIPES );
 	}
 
+	/**
+	 * Returns the number of recipes in the database and handles all the connection nonsense
+	 * 
+	 * @return the number of recipes
+	 */
+	public static long fetchRecipesCount( Context context ) {
+		RecipesDataSource datasource;
+		datasource = new RecipesDataSource( context );
+		datasource.open();
+		long recipesCount = datasource.fetchRecipesCount();
+		datasource.close();
+		return recipesCount;
+	}
+
+	
 	private static final boolean DISTINCT = true;
 
 	public List<HashMap<String, String>> getCategories() {
