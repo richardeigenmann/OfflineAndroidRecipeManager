@@ -67,6 +67,7 @@ public class MaintenanceActivity extends Activity {
 	int newRecipes = -1;
 	int totalRecipes = -1;
 	long recipesCount = -1;
+	long searchesCount = -1;
 
 	/**
 	 * Refresh the data for the status Widget
@@ -84,20 +85,22 @@ public class MaintenanceActivity extends Activity {
 		statusText
 				.setText( String
 						.format(
-								"Last download: %s\nRecipes in DB: %d\nNew recipes since last download: %d\nTotal Server Recipes: %d",
+								"Last download: %s\nRecipes in DB: %d\nNew recipes since last download: %d\nTotal Server Recipes: %d\nSaved Searched: %d",
 								StaticAppStuff.getLastRunTimeStamp( this ),
-								recipesCount, newRecipes, totalRecipes ) );
+								recipesCount, newRecipes, totalRecipes,
+								searchesCount ) );
 	}
 
 	/**
 	 * Connect to the DB and find out how many recipes we hold.
 	 */
 	private void askDB() {
-		RecipesDataSource datasource;
-		datasource = new RecipesDataSource( this );
-		datasource.open();
-		recipesCount = datasource.fetchRecipesCount();
-		datasource.close();
+		//RecipesDataSource datasource;
+		//datasource = new RecipesDataSource( this );
+		//datasource.open();
+		recipesCount = RecipesDataSource.fetchRecipesCount( this );
+		//datasource.close();
+		searchesCount = RecipesDataSource.fetchSearchesCount( this );
 	}
 
 	/**

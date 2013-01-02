@@ -20,12 +20,16 @@ public class RecipesDataSource {
 	private static final String TAG = "RecipesDataSource";
 
 	// Database fields
-	private SQLiteDatabase database;
+	public SQLiteDatabase database;
 	private DBHandler dbHelper;
-	private String[] allColumns = { DBHandler.RECIPE_FILE,
+	private static final String[] RECPIE_ALL_COLUMNS = { DBHandler.RECIPE_FILE,
 			DBHandler.RECIPE_TITLE, DBHandler.RECIPE_IMAGE_FILENAME,
 			DBHandler.RECIPE_IMAGE_WIDTH, DBHandler.RECIPE_IMAGE_HEIGHT };
 
+	private static final String[] SEARCH_ALL_COLUMNS = { DBHandler.SEARCH_ID,
+		DBHandler.SEARCH_DESCRIPTION };
+
+	
 	public RecipesDataSource( Context context ) {
 		dbHelper = new DBHandler( context );
 	}
@@ -84,7 +88,7 @@ public class RecipesDataSource {
 
 		String likeClause = DBHandler.RECIPE_TITLE + " like ?";
 		Log.d( TAG, "Searching for string: " + searchString );
-		Cursor cursor = database.query( DBHandler.TABLE_RECIPES, allColumns,
+		Cursor cursor = database.query( DBHandler.TABLE_RECIPES, RECPIE_ALL_COLUMNS,
 				likeClause, new String[] { searchString }, null, null,
 				DBHandler.RECIPE_TITLE, null );
 
@@ -176,6 +180,11 @@ public class RecipesDataSource {
 		return recipes;
 	}
 
+	/**
+	 * Converts a Recipe Table cursor to a Java Recipe object
+	 * @param cursor The cursor on the recipe row
+	 * @return the Recipe object
+	 */
 	private Recipe cursorToRecipe( Cursor cursor ) {
 		Recipe recipe = new Recipe();
 		recipe.setFile( cursor.getString( 0 ) );
@@ -210,6 +219,21 @@ public class RecipesDataSource {
 		return recipesCount;
 	}
 
+	/**
+	 * Returns the number of searches in the database and handles all the connection nonsense
+	 * 
+	 * @return the number of searches
+	 */
+	public static long fetchSearchesCount( Context context ) {
+		RecipesDataSource datasource;
+		datasource = new RecipesDataSource( context );
+		datasource.open();
+		long recipesCount = DatabaseUtils
+				.queryNumEntries( datasource.database, DBHandler.TABLE_SEARCHES );
+		datasource.close();
+		return recipesCount;
+	}
+	
 	
 	private static final boolean DISTINCT = true;
 
@@ -275,4 +299,43 @@ public class RecipesDataSource {
 		return categoryMembers;
 	}
 
+
+	/**
+	 * Returns a list of the stored searches
+	 * @param searchString
+	 * @return
+	 */
+	public List<Search> getSearches() {
+		open();
+		List<Search> searches = new ArrayList<Search>();
+		Cursor cursor = database.query( DBHandler.TABLE_SEARCHES, SEARCH_ALL_COLUMNS,
+				null, null, null, null,
+				DBHandler.SEARCH_DESCRIPTION, null );
+
+		cursor.moveToFirst();
+		while ( !cursor.isAfterLast() ) {
+			Search search = cursorToSearch( cursor );
+			searches.add( search );
+			cursor.moveToNext();
+		}
+		// Make sure to close the cursor
+		cursor.close();
+		close();
+		return searches;
+	}
+
+	/**
+	 * Converts a Search Table cursor to a Java Search object
+	 * @param cursor The cursor on the recipe row
+	 * @return the Recipe object
+	 */
+	private Search cursorToSearch( Cursor cursor ) {
+		Search search = new Search();
+		search.setSearchId( cursor.getInt( 0 ) );
+		search.setDescription(  cursor.getString( 1 ) );
+		return search;
+	}
+
+	
+	
 }

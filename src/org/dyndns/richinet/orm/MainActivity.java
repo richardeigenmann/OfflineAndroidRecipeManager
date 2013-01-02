@@ -1,15 +1,23 @@
 package org.dyndns.richinet.orm;
 
+import java.util.List;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 
 public class MainActivity extends Activity {
 
@@ -106,26 +114,27 @@ public class MainActivity extends Activity {
 			}
 		} );
 
-		// Use the SimpleCursorAdapter to show the
-		// elements in a ListView
-		/*
-		 * final ArrayAdapter<Recipe> adapter = new ArrayAdapter<Recipe>( this,
-		 * android.R.layout.simple_list_item_1, recipes ); ListView listView =
-		 * (ListView) findViewById( R.id.resultsListView );
-		 * 
-		 * listView.setAdapter( adapter );
-		 * 
-		 * listView.setOnItemClickListener( new OnItemClickListener() {
-		 * 
-		 * @Override public void onItemClick( AdapterView<?> parent, View view,
-		 * int position, long r_id ) { Recipe selectedRecipe = adapter.getItem(
-		 * position ); selectedRecipe.dumpToLog(); SharedPreferences prefs =
-		 * getSharedPreferences( StaticAppStuff.PREFS_NAME, 0 ); String url =
-		 * prefs.getString( "serverurl", StaticAppStuff.DEFAULT_WEBSERVER ); url
-		 * = url + selectedRecipe.getFile(); Intent browserIntent = new Intent(
-		 * Intent.ACTION_VIEW, Uri .parse( url ) ); startActivity( browserIntent
-		 * ); } } );
-		 */
+		RecipesDataSource datasource = new RecipesDataSource( this );
+		List<Search> searches = datasource.getSearches();
+
+		final ArrayAdapter<Search> adapter = new ArrayAdapter<Search>( this,
+				android.R.layout.simple_list_item_1, searches );
+		ListView listView = (ListView) findViewById( R.id.searchesListView );
+		listView.setAdapter( adapter );
+
+		listView.setOnItemClickListener( new OnItemClickListener() {
+
+			@Override
+			public void onItemClick( AdapterView<?> parent, View view,
+					int position, long r_id ) {
+				Search selectedSearch = adapter.getItem( position );
+				Log.i( TAG, String.format(
+						"Click on item %d for searchId %d for %s", position,
+						selectedSearch.getSearchId(),
+						selectedSearch.getDescription() ) );
+				//ToDo: Add long-press delete and quick tap open. 
+			}
+		} );
 
 	}
 
