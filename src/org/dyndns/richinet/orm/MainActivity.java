@@ -3,9 +3,11 @@ package org.dyndns.richinet.orm;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -18,6 +20,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -127,16 +130,22 @@ public class MainActivity extends Activity {
 			@Override
 			public void onItemClick( AdapterView<?> parent, View view,
 					int position, long r_id ) {
-				Search selectedSearch = adapter.getItem( position );
+				clickedSavedSearch = adapter.getItem( position );
 				Log.i( TAG, String.format(
 						"Click on item %d for searchId %d for %s", position,
-						selectedSearch.getSearchId(),
-						selectedSearch.getDescription() ) );
-				//ToDo: Add long-press delete and quick tap open. 
+						clickedSavedSearch.getSearchId(),
+						clickedSavedSearch.getDescription() ) );
+				showDialog( SAVED_QUERY_DIALOG );
 			}
 		} );
 
 	}
+
+	/**
+	 * Memorise the saved search that was clicked for the dialog. TODO: Is this
+	 * the way to do it, holding a reference in the activity? Why ever not?
+	 */
+	private Search clickedSavedSearch = null;
 
 	/**
 	 * Inflate an option menu
@@ -162,6 +171,90 @@ public class MainActivity extends Activity {
 		default:
 			return super.onOptionsItemSelected( item );
 		}
+	}
+
+	/**
+	 * Constant to indicate the Saves Query Dialog
+	 */
+	private static final int SAVED_QUERY_DIALOG = 1;
+
+	/**
+	 * Create the dialog. Called only once. onPrepareDialog is called on
+	 * subsequent opens
+	 */
+	@Override
+	protected Dialog onCreateDialog( int id ) {
+		Dialog dialog;
+		switch ( id ) {
+		case SAVED_QUERY_DIALOG:
+			AlertDialog.Builder builder = new AlertDialog.Builder(
+					MainActivity.this );
+
+			// this line seems to be required even though the values are
+			// replaced
+			// in the onPrepareDialog method. If removed the title and message
+			// are
+			// not shown.
+			builder.setTitle( " " ).setMessage( "" );
+
+			builder.setPositiveButton( "Search",
+					new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick( DialogInterface dialog, int which ) {
+							dismissDialog( SAVED_QUERY_DIALOG );
+							doExecuteSavedSearch();
+						}
+					} );
+			builder.setNeutralButton( "Delete",
+					new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick( DialogInterface dialog, int which ) {
+							dismissDialog( SAVED_QUERY_DIALOG );
+							doDeleteSavedSearch();
+						}
+					} );
+
+			AlertDialog alert = builder.create();
+			dialog = alert;
+			break;
+		default:
+			dialog = null;
+		}
+		return dialog;
+	}
+
+	/**
+	 * This method is called each time the dialog is displayed.
+	 */
+	@Override
+	protected void onPrepareDialog( int id, Dialog dialog ) {
+		switch ( id ) {
+		case SAVED_QUERY_DIALOG:
+			( (AlertDialog) dialog ).setTitle( "Saved Search" );
+			( (AlertDialog) dialog ).setMessage( clickedSavedSearch
+					.getDescription() );
+			break;
+		}
+	}
+
+	/**
+	 * Execute the saved search that is referred to in the clickedSaveSearch
+	 * variable.
+	 */
+	private void doExecuteSavedSearch() {
+		Toast.makeText( this, "You want to execute saved query "
+				+ clickedSavedSearch.getDescription(), Toast.LENGTH_LONG ).show();
+	}
+
+	/**
+	 * Delete the saved search that is referred to in the clickedSaveSearch
+	 * variable.
+	 */
+	private void doDeleteSavedSearch() {
+		Toast.makeText( this, "You want to delete the saved query "
+				+ clickedSavedSearch.getDescription(), Toast.LENGTH_LONG ).show();
 	}
 
 }
