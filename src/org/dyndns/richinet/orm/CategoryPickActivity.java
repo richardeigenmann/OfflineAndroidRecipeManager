@@ -30,7 +30,7 @@ public class CategoryPickActivity extends ExpandableListActivity {
 	private List<List<HashMap<String, String>>> categoryMembers;
 
 	private HashSet<String> picks = new HashSet<String>();
-	
+
 	@Override
 	public void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
@@ -42,7 +42,7 @@ public class CategoryPickActivity extends ExpandableListActivity {
 
 		String[] includeWords = getIntent().getStringArrayExtra( "picks" );
 		for ( String s : includeWords ) {
-			//Log.d( TAG, s );
+			// Log.d( TAG, s );
 			picks.add( s );
 		}
 
@@ -87,7 +87,9 @@ public class CategoryPickActivity extends ExpandableListActivity {
 
 	}
 
-
+	/**
+	 * handle the click on a category
+	 */
 	public boolean onChildClick( ExpandableListView parent, View v,
 			int groupPosition, int childPosition, long id ) {
 		String clickMember = categoryMembers.get( groupPosition )
@@ -176,13 +178,14 @@ public class CategoryPickActivity extends ExpandableListActivity {
 				boolean isLastChild, View convertView, ViewGroup parent ) {
 			View view = super.getChildView( groupPosition, childPosition,
 					isLastChild, convertView, parent );
-			//String member = categoryMembers.get( groupPosition )
-			//		.get( childPosition ).get( "shadeName" );
+			// String member = categoryMembers.get( groupPosition )
+			// .get( childPosition ).get( "shadeName" );
 			boolean picked = isPicked( groupPosition, childPosition );
-			/*Log.d( TAG,
-					String.format(
-							"getChildView groupPosition: %d, childPosition: %d member: %s picked: %b",
-							groupPosition, childPosition, member, picked ) );*/
+			/*
+			 * Log.d( TAG, String.format(
+			 * "getChildView groupPosition: %d, childPosition: %d member: %s picked: %b"
+			 * , groupPosition, childPosition, member, picked ) );
+			 */
 			CheckBox cb = (CheckBox) view.findViewById( R.id.check1 );
 			cb.setChecked( picked );
 			cb.setClickable( false );

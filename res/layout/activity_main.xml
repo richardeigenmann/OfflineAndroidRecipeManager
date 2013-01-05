@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Enter the recipe search term" >
+        android:hint="@string/hint_search_term" >
 
         <requestFocus />
     </EditText>
@@ -21,40 +21,19 @@
         android:layout_marginBottom="20dp" >
 
         <Button
-            android:id="@+id/button_search"
+            android:id="@+id/main_button_search"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/button_search" />
+            android:text="@string/main_button_search" />
 
         <Button
-            android:id="@+id/button_advanced_search"
+            android:id="@+id/main_button_advanced_search"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/button_advanced_search" />
+            android:text="@string/main_button_advanced_search" />
     </LinearLayout>
-
-    <Button
-        android:id="@+id/button_34sterne"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:focusable="false"
-        android:text="3 und 4 Sterne" />
-
-    <Button
-        android:id="@+id/button_hauptpgerichte"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:focusable="false"
-        android:text="Hauptgerichte" />
-
-    <Button
-        android:id="@+id/button_desserts"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:focusable="false"
-        android:text="Desserts" />
 
     <ListView
         android:id="@+id/searchesListView"

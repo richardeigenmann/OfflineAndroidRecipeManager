@@ -27,9 +27,8 @@ public class RecipesDataSource {
 			DBHandler.RECIPE_IMAGE_WIDTH, DBHandler.RECIPE_IMAGE_HEIGHT };
 
 	private static final String[] SEARCH_ALL_COLUMNS = { DBHandler.SEARCH_ID,
-		DBHandler.SEARCH_DESCRIPTION };
+			DBHandler.SEARCH_DESCRIPTION };
 
-	
 	public RecipesDataSource( Context context ) {
 		dbHelper = new DBHandler( context );
 	}
@@ -81,6 +80,13 @@ public class RecipesDataSource {
 		DBHandler.truncateRecipes( database, context );
 	}
 
+	/**
+	 * Search recipes matching on a string.
+	 * 
+	 * @param searchString
+	 *            the String to match on
+	 * @return the list of recipes
+	 */
 	public List<Recipe> searchRecipes( String searchString ) {
 		open();
 		List<Recipe> recipes = new ArrayList<Recipe>();
@@ -88,9 +94,9 @@ public class RecipesDataSource {
 
 		String likeClause = DBHandler.RECIPE_TITLE + " like ?";
 		Log.d( TAG, "Searching for string: " + searchString );
-		Cursor cursor = database.query( DBHandler.TABLE_RECIPES, RECPIE_ALL_COLUMNS,
-				likeClause, new String[] { searchString }, null, null,
-				DBHandler.RECIPE_TITLE, null );
+		Cursor cursor = database.query( DBHandler.TABLE_RECIPES,
+				RECPIE_ALL_COLUMNS, likeClause, new String[] { searchString },
+				null, null, DBHandler.RECIPE_TITLE, null );
 
 		cursor.moveToFirst();
 		while ( !cursor.isAfterLast() ) {
@@ -104,6 +110,97 @@ public class RecipesDataSource {
 		return recipes;
 	}
 
+	/**
+	 * Search recipes matching a saved query
+	 * 
+	 * @param searchId
+	 *            the Id of the saved search
+	 * @return the list of recipes
+	 */
+	public List<Recipe> searchRecipes( int searchId ) {
+		open();
+
+		// breaking the query up to simplify the logic and help the optimiser
+		// first query builds a disinct list of the recipes that match the  
+		StringBuilder sqlStatement = new StringBuilder(
+				"create temporary table results as select distinct c."
+						+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + " from "
+						+ DBHandler.TABLE_CLASSIFICATIONS + " c, "
+						+ DBHandler.TABLE_SEARCHPARAMS + " sp where sp."
+						+ DBHandler.SEARCHPARAMS_SEARCH_ID + " = "
+						+ Integer.toString( searchId ) + " and sp."
+						+ DBHandler.SEARCHPARAMS_SEARCH_FIELD + " = 'I';" );
+		Log.d( TAG, sqlStatement.toString() );
+		database.execSQL( sqlStatement.toString() );
+
+		sqlStatement = new StringBuilder( "select " + DBHandler.RECIPE_FILE
+				+ ", " + DBHandler.RECIPE_TITLE + ", "
+				+ DBHandler.RECIPE_IMAGE_FILENAME + ", "
+				+ DBHandler.RECIPE_IMAGE_WIDTH + ", "
+				+ DBHandler.RECIPE_IMAGE_HEIGHT + " from "
+				+ DBHandler.TABLE_RECIPES + " r, temp.results tr where r."
+				+ DBHandler.RECIPE_FILE + " = tr."
+				+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + " order by "
+				+ DBHandler.RECIPE_TITLE );
+
+		
+		// becomes something like this:
+		// select file, title, imagefilename, imagewidth, imageheight
+		// from recipes r
+		// where exists ( select 1 from classifications c, search_parameters sp
+		// where sp.searchId = x and sp.searchField = 'I'
+		// and r.file = c.recipe_file
+		// and sp.searchterm = c.member )
+
+		// and not exists ( select 1 from classifications c where r.file =
+		// c.recipe_file and member in ('Cakes') )
+		// order by title
+
+		/*
+		 * sqlStatement = new StringBuilder( "select " + DBHandler.RECIPE_FILE +
+		 * ", " + DBHandler.RECIPE_TITLE + ", " +
+		 * DBHandler.RECIPE_IMAGE_FILENAME + ", " + DBHandler.RECIPE_IMAGE_WIDTH
+		 * + ", " + DBHandler.RECIPE_IMAGE_HEIGHT + " from " +
+		 * DBHandler.TABLE_RECIPES + " r where exists ( select 1 from " +
+		 * DBHandler.TABLE_CLASSIFICATIONS + " c, " +
+		 * DBHandler.TABLE_SEARCHPARAMS + " sp where sp." +
+		 * DBHandler.SEARCHPARAMS_SEARCH_ID + "=" + Integer.toString( searchId )
+		 * + " and sp." + DBHandler.SEARCHPARAMS_SEARCH_FIELD + "='I' and c." +
+		 * DBHandler.CLASSIFICATIONS_RECIPE_FILE + "=" + "r." +
+		 * DBHandler.RECIPE_FILE + " and c." + DBHandler.CLASSIFICATIONS_MEMBER
+		 * + "= sp." + DBHandler.SEARCHPARAMS_SEARCH_TERM + ") " + " order by "
+		 * + DBHandler.RECIPE_TITLE );
+		 */
+
+		Log.d( TAG, sqlStatement.toString() );
+		Cursor cursor = database.rawQuery( sqlStatement.toString(), null );
+
+		cursor.moveToFirst();
+		List<Recipe> recipes = new ArrayList<Recipe>();
+		while ( !cursor.isAfterLast() ) {
+			Recipe recipe = cursorToRecipe( cursor );
+			recipes.add( recipe );
+			cursor.moveToNext();
+		}
+		cursor.close();
+
+		sqlStatement = new StringBuilder("drop table temp.results");
+		Log.d( TAG, sqlStatement.toString() );
+		database.execSQL( sqlStatement.toString() );
+		
+		close();
+		return recipes;
+
+	}
+
+	/**
+	 * Search recipes matching the criteria
+	 * 
+	 * @param includeWords
+	 * @param limitWords
+	 * @param excludeWords
+	 * @return the list of matching recipes
+	 */
 	public List<Recipe> searchRecipes( String[] includeWords,
 			String[] limitWords, String[] excludeWords ) {
 
@@ -182,7 +279,9 @@ public class RecipesDataSource {
 
 	/**
 	 * Converts a Recipe Table cursor to a Java Recipe object
-	 * @param cursor The cursor on the recipe row
+	 * 
+	 * @param cursor
+	 *            The cursor on the recipe row
 	 * @return the Recipe object
 	 */
 	private Recipe cursorToRecipe( Cursor cursor ) {
@@ -206,7 +305,8 @@ public class RecipesDataSource {
 	}
 
 	/**
-	 * Returns the number of recipes in the database and handles all the connection nonsense
+	 * Returns the number of recipes in the database and handles all the
+	 * connection nonsense
 	 * 
 	 * @return the number of recipes
 	 */
@@ -220,7 +320,8 @@ public class RecipesDataSource {
 	}
 
 	/**
-	 * Returns the number of searches in the database and handles all the connection nonsense
+	 * Returns the number of searches in the database and handles all the
+	 * connection nonsense
 	 * 
 	 * @return the number of searches
 	 */
@@ -228,13 +329,12 @@ public class RecipesDataSource {
 		RecipesDataSource datasource;
 		datasource = new RecipesDataSource( context );
 		datasource.open();
-		long recipesCount = DatabaseUtils
-				.queryNumEntries( datasource.database, DBHandler.TABLE_SEARCHES );
+		long recipesCount = DatabaseUtils.queryNumEntries( datasource.database,
+				DBHandler.TABLE_SEARCHES );
 		datasource.close();
 		return recipesCount;
 	}
-	
-	
+
 	private static final boolean DISTINCT = true;
 
 	public List<HashMap<String, String>> getCategories() {
@@ -299,17 +399,17 @@ public class RecipesDataSource {
 		return categoryMembers;
 	}
 
-
 	/**
 	 * Returns a list of the stored searches
+	 * 
 	 * @param searchString
 	 * @return
 	 */
 	public List<Search> getSearches() {
 		open();
 		List<Search> searches = new ArrayList<Search>();
-		Cursor cursor = database.query( DBHandler.TABLE_SEARCHES, SEARCH_ALL_COLUMNS,
-				null, null, null, null,
+		Cursor cursor = database.query( DBHandler.TABLE_SEARCHES,
+				SEARCH_ALL_COLUMNS, null, null, null, null,
 				DBHandler.SEARCH_DESCRIPTION, null );
 
 		cursor.moveToFirst();
@@ -326,14 +426,77 @@ public class RecipesDataSource {
 
 	/**
 	 * Converts a Search Table cursor to a Java Search object
-	 * @param cursor The cursor on the recipe row
+	 * 
+	 * @param cursor
+	 *            The cursor on the recipe row
 	 * @return the Recipe object
 	 */
 	private Search cursorToSearch( Cursor cursor ) {
 		Search search = new Search();
 		search.setSearchId( cursor.getInt( 0 ) );
-		search.setDescription(  cursor.getString( 1 ) );
+		search.setDescription( cursor.getString( 1 ) );
 		return search;
+	}
+
+	
+	/**
+	 * Deletes the saved search with the specified Id
+	 * 
+	 * @return the number of recipes
+	 */
+	public static void deleteSavedSearch( Context context, int searchId ) {
+		RecipesDataSource datasource;
+		datasource = new RecipesDataSource( context );
+		datasource.open();
+		int deletedRows = datasource.database.delete ( DBHandler.TABLE_SEARCHPARAMS, DBHandler.SEARCHPARAMS_SEARCH_ID + "=?", new String [] { Integer.toString( searchId ) } );
+		Log.d( TAG, String.format("%d rows deleted from table %s", deletedRows, DBHandler.TABLE_SEARCHPARAMS) );
+
+		deletedRows = datasource.database.delete ( DBHandler.TABLE_SEARCHES, DBHandler.SEARCH_ID + "=?", new String [] { Integer.toString( searchId ) } );
+		Log.d( TAG, String.format("%d rows deleted from table %s", deletedRows, DBHandler.TABLE_SEARCHES) );
+		datasource.close();
+	}
+
+	
+	/**
+	 * Saves the search
+	 * 
+	 */
+	public static void saveSearch( Context context, String description, String[] includeWords, String[] limitWords, String[] excludeWords ) {
+		RecipesDataSource datasource;
+		datasource = new RecipesDataSource( context );
+		datasource.open();
+		
+		ContentValues contentValues = new ContentValues();
+		contentValues.put( DBHandler.SEARCH_DESCRIPTION, description );
+		long searchId = datasource.database.insert( DBHandler.TABLE_SEARCHES, null, contentValues );
+		Log.d( TAG, String.format("row %d inserted into table %s", searchId, DBHandler.TABLE_SEARCHES) );
+		
+		for ( String word : includeWords ) {
+			contentValues = new ContentValues();
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_ID, searchId );
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_FIELD, "I");
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_TERM, word );
+			long rowId = datasource.database.insert( DBHandler.TABLE_SEARCHPARAMS, null, contentValues );
+			Log.d( TAG, String.format("row %d inserted into table %s", rowId, DBHandler.TABLE_SEARCHPARAMS) );
+		}
+		for ( String word : excludeWords ) {
+			contentValues = new ContentValues();
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_ID, searchId );
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_FIELD, "E");
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_TERM, word );
+			long rowId = datasource.database.insert( DBHandler.TABLE_SEARCHPARAMS, null, contentValues );
+			Log.d( TAG, String.format("row %d inserted into table %s", rowId, DBHandler.TABLE_SEARCHPARAMS) );
+		}
+		for ( String word : limitWords ) {
+			contentValues = new ContentValues();
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_ID, searchId );
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_FIELD, "L");
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_TERM, word );
+			long rowId = datasource.database.insert( DBHandler.TABLE_SEARCHPARAMS, null, contentValues );
+			Log.d( TAG, String.format("row %d inserted into table %s", rowId, DBHandler.TABLE_SEARCHPARAMS) );
+		}
+
+		datasource.close();
 	}
 
 	

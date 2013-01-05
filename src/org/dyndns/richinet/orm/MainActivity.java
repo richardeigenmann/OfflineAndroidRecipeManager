@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
 			finish();
 		}
 
-		final Button button_search = (Button) findViewById( R.id.button_search );
+		final Button button_search = (Button) findViewById( R.id.main_button_search );
 		button_search.setOnClickListener( new View.OnClickListener() {
 			public void onClick( View v ) {
 				String searchTerm = ( (EditText) findViewById( R.id.searchTerm ) )
@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
 			}
 		} );
 
-		final Button button_advanced_search = (Button) findViewById( R.id.button_advanced_search );
+		final Button button_advanced_search = (Button) findViewById( R.id.main_button_advanced_search );
 		button_advanced_search.setOnClickListener( new View.OnClickListener() {
 			public void onClick( View v ) {
 				Intent advancedSearchIntent = new Intent( MainActivity.this,
@@ -76,51 +76,11 @@ public class MainActivity extends Activity {
 				MainActivity.this.startActivity( advancedSearchIntent );
 			}
 		} );
-		final Button button_34sterne = (Button) findViewById( R.id.button_34sterne );
-		button_34sterne.setOnClickListener( new View.OnClickListener() {
-			public void onClick( View v ) {
-				Intent searchIntent = new Intent( MainActivity.this,
-						ResultScrollerActivity.class );
-				searchIntent.putExtra( "searchTerm", "" );
-				searchIntent.putExtra( "includeWords", new String[] {
-						"3 Sterne", "4 Sterne" } );
-				searchIntent.putExtra( "limitWords", new String[0] );
-				searchIntent.putExtra( "excludeWords", new String[0] );
-				MainActivity.this.startActivity( searchIntent );
-			}
-		} );
-		final Button button_hauptpgerichte = (Button) findViewById( R.id.button_hauptpgerichte );
-		button_hauptpgerichte.setOnClickListener( new View.OnClickListener() {
-			public void onClick( View v ) {
-				Intent searchIntent = new Intent( MainActivity.this,
-						ResultScrollerActivity.class );
-				searchIntent.putExtra( "searchTerm", "" );
-				searchIntent.putExtra( "includeWords",
-						new String[] { "Hauptgerichte" } );
-				searchIntent.putExtra( "limitWords", new String[0] );
-				searchIntent.putExtra( "excludeWords", new String[0] );
-				MainActivity.this.startActivity( searchIntent );
-			}
-		} );
 
-		final Button button_desserts = (Button) findViewById( R.id.button_desserts );
-		button_desserts.setOnClickListener( new View.OnClickListener() {
-			public void onClick( View v ) {
-				Intent searchIntent = new Intent( MainActivity.this,
-						ResultScrollerActivity.class );
-				searchIntent.putExtra( "searchTerm", "" );
-				searchIntent.putExtra( "includeWords",
-						new String[] { "Desserts" } );
-				searchIntent.putExtra( "limitWords", new String[0] );
-				searchIntent.putExtra( "excludeWords", new String[0] );
-				MainActivity.this.startActivity( searchIntent );
-			}
-		} );
 
-		RecipesDataSource datasource = new RecipesDataSource( this );
-		List<Search> searches = datasource.getSearches();
+		fetchSearches();
 
-		final ArrayAdapter<Search> adapter = new ArrayAdapter<Search>( this,
+		adapter = new ArrayAdapter<Search>( this,
 				android.R.layout.simple_list_item_1, searches );
 		ListView listView = (ListView) findViewById( R.id.searchesListView );
 		listView.setAdapter( adapter );
@@ -141,6 +101,24 @@ public class MainActivity extends Activity {
 
 	}
 
+	/**
+	 * The list of searches
+	 */
+	private List<Search> searches = null;
+	
+	/**
+	 * The array adapter to show it
+	 */
+	private ArrayAdapter<Search> adapter;
+
+	/**
+	 * refreshes the list of searches
+	 */
+	private void fetchSearches() {
+		RecipesDataSource datasource = new RecipesDataSource( this );
+		searches = datasource.getSearches();
+	}
+	
 	/**
 	 * Memorise the saved search that was clicked for the dialog. TODO: Is this
 	 * the way to do it, holding a reference in the activity? Why ever not?
@@ -244,8 +222,14 @@ public class MainActivity extends Activity {
 	 * variable.
 	 */
 	private void doExecuteSavedSearch() {
-		Toast.makeText( this, "You want to execute saved query "
-				+ clickedSavedSearch.getDescription(), Toast.LENGTH_LONG ).show();
+		Toast.makeText(
+				this,
+				"You want to execute saved query "
+						+ clickedSavedSearch.getDescription(),
+				Toast.LENGTH_LONG ).show();
+		Intent searchIntent = new Intent( this, ResultScrollerActivity.class );
+		searchIntent.putExtra( "searchId", clickedSavedSearch.getSearchId() );
+		startActivity( searchIntent );
 	}
 
 	/**
@@ -253,8 +237,13 @@ public class MainActivity extends Activity {
 	 * variable.
 	 */
 	private void doDeleteSavedSearch() {
-		Toast.makeText( this, "You want to delete the saved query "
-				+ clickedSavedSearch.getDescription(), Toast.LENGTH_LONG ).show();
+		RecipesDataSource.deleteSavedSearch( this,
+				clickedSavedSearch.getSearchId() );
+		fetchSearches();
+		adapter.notifyDataSetChanged();
+		Toast.makeText( this,
+				"Deleted saved query " + clickedSavedSearch.getDescription(),
+				Toast.LENGTH_SHORT ).show();
 	}
 
 }

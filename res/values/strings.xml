@@ -24,11 +24,14 @@
 
     <!-- MainActivity -->
     <string name="title_activity_main">Richi\'s Rezeptsammlung</string>
-    <string name="button_search">Search</string>
-    <string name="button_advanced_search">Advanced Search</string>
+    <string name="hint_search_term">Enter the recipe search term</string>
+    <string name="main_button_search">Search</string>
+    <string name="main_button_advanced_search">Advanced Search</string>
 
     <!-- Advanced search activity -->
     <string name="title_activity_advanced_search">Advanced Search</string>
+    <string name="advanced_button_search">Search</string>
+    <string name="advanced_button_save">Save Query</string>
 
     <!-- Result Scroller Activity -->
     <string name="title_activity_result_scroller">Search Results</string>

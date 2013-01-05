@@ -28,6 +28,9 @@ public class ResultScrollerActivity extends Activity {
 		setContentView( R.layout.activity_result_scroller );
 
 		final Intent myIntent = getIntent();
+		
+		final int searchId = myIntent.getIntExtra( "searchId", -1 );
+
 		final String searchTerm = myIntent.getStringExtra( "searchTerm" );
 
 		final String[] includeWords = myIntent
@@ -38,7 +41,9 @@ public class ResultScrollerActivity extends Activity {
 
 		List<Recipe> recipes = null;
 		RecipesDataSource datasource = new RecipesDataSource( this );
-		if ( includeWords.length == 0 ) {
+		if ( searchId > -1 ) {
+			recipes = datasource.searchRecipes( searchId );
+		} else if ( includeWords.length == 0 ) {
 			recipes = datasource.searchRecipes( searchTerm );
 		} else {
 			recipes = datasource.searchRecipes( includeWords, limitWords,

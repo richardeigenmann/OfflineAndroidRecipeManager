@@ -2,14 +2,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    tools:context=".AdvancedSearchActivity"
     android:orientation="vertical" >
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/label_include"
-        tools:context=".MainActivity" />
+        android:text="@string/label_include" />
 
     <EditText
         android:id="@+id/include_words"
@@ -20,8 +18,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/label_limit"
-        tools:context=".MainActivity" />
+        android:text="@string/label_limit" />
 
     <EditText
         android:id="@+id/limit_words"
@@ -44,11 +41,25 @@
         android:focusable="false"
         android:focusableInTouchMode="false" />
 
-    <Button
-        android:id="@+id/button_search"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:focusable="false"
-        android:text="Search" />
+        android:layout_marginBottom="20dp"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/advanced_button_search"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/advanced_button_search" />
+
+        <Button
+            android:id="@+id/advanced_button_save"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/advanced_button_save" />
+    </LinearLayout>
 
 </LinearLayout>
