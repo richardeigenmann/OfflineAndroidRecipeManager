@@ -4,42 +4,42 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/advanced_button_include"
+        android:layout_width="85dp"
         android:layout_height="wrap_content"
         android:text="@string/label_include" />
 
-    <EditText
+    <TextView
         android:id="@+id/include_words"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10" />
 
-    <TextView
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/advanced_button_limit"
+        android:layout_width="85dp"
         android:layout_height="wrap_content"
         android:text="@string/label_limit" />
 
-    <EditText
+    <TextView
         android:id="@+id/limit_words"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:focusableInTouchMode="false" />
+        android:ems="10" />
+
+    <Button
+        android:id="@+id/advanced_button_exclude"
+        android:layout_width="85dp"
+        android:layout_height="wrap_content"
+        android:text="@string/label_exclude" />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/label_exclude"
-        tools:context=".MainActivity" />
-
-    <EditText
         android:id="@+id/exclude_words"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:focusable="false"
-        android:focusableInTouchMode="false" />
+        android:focusable="false" />
 
     <LinearLayout
         android:layout_width="fill_parent"

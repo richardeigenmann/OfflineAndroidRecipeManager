@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class AdvancedSearchActivity extends Activity {
@@ -21,8 +22,8 @@ public class AdvancedSearchActivity extends Activity {
 		super.onCreate( savedInstanceState );
 		setContentView( R.layout.activity_advanced_search );
 
-		final EditText include_words = (EditText) findViewById( R.id.include_words );
-		include_words.setOnClickListener( new View.OnClickListener() {
+		final Button advanced_button_include = (Button) findViewById( R.id.advanced_button_include );
+		advanced_button_include.setOnClickListener( new View.OnClickListener() {
 
 			@Override
 			public void onClick( View v ) {
@@ -34,8 +35,8 @@ public class AdvancedSearchActivity extends Activity {
 			}
 		} );
 
-		final EditText limit_words = (EditText) findViewById( R.id.limit_words );
-		limit_words.setOnClickListener( new View.OnClickListener() {
+		final Button advanced_button_limit = (Button) findViewById( R.id.advanced_button_limit );
+		advanced_button_limit.setOnClickListener( new View.OnClickListener() {
 
 			@Override
 			public void onClick( View v ) {
@@ -47,8 +48,8 @@ public class AdvancedSearchActivity extends Activity {
 			}
 		} );
 
-		final EditText exclude_words = (EditText) findViewById( R.id.exclude_words );
-		exclude_words.setOnClickListener( new View.OnClickListener() {
+		final Button advanced_button_exclude = (Button) findViewById( R.id.advanced_button_exclude );
+		advanced_button_exclude.setOnClickListener( new View.OnClickListener() {
 
 			@Override
 			public void onClick( View v ) {
@@ -93,7 +94,7 @@ public class AdvancedSearchActivity extends Activity {
 		case ( INCLUDE_WORDS ): {
 			if ( resultCode == Activity.RESULT_OK ) {
 				includeWords = data.getStringArrayExtra( "picks" );
-				final EditText include_words = (EditText) findViewById( R.id.include_words );
+				final TextView include_words = (TextView) findViewById( R.id.include_words );
 				StringBuffer sb = new StringBuffer( "" );
 				for ( String s : includeWords ) {
 					// Log.d(TAG, s);
@@ -107,7 +108,7 @@ public class AdvancedSearchActivity extends Activity {
 		case ( LIMIT_WORDS ): {
 			if ( resultCode == Activity.RESULT_OK ) {
 				limitWords = data.getStringArrayExtra( "picks" );
-				final EditText limit_words = (EditText) findViewById( R.id.limit_words );
+				final TextView limit_words = (TextView) findViewById( R.id.limit_words );
 				StringBuffer sb = new StringBuffer( "" );
 				for ( String s : includeWords ) {
 					// Log.d(TAG, s);
@@ -121,7 +122,7 @@ public class AdvancedSearchActivity extends Activity {
 		case ( EXCLUDE_WORDS ): {
 			if ( resultCode == Activity.RESULT_OK ) {
 				excludeWords = data.getStringArrayExtra( "picks" );
-				final EditText exclude_words = (EditText) findViewById( R.id.exclude_words );
+				final TextView exclude_words = (TextView) findViewById( R.id.exclude_words );
 				StringBuffer sb = new StringBuffer( "" );
 				for ( String s : excludeWords ) {
 					// Log.d(TAG, s);

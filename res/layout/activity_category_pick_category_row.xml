@@ -4,8 +4,10 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content">
 
-    <TextView android:id="@+id/childname"
+    <TextView android:id="@+id/category"
          android:paddingLeft="50dp"
+         android:layout_marginTop="10dp"
+         android:layout_marginBottom="10dp"
          android:layout_width="fill_parent"
          android:layout_height="wrap_content"/>
 

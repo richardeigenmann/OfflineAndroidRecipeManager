@@ -19,7 +19,7 @@ public class RecipeParserThread extends Thread {
 	 */
 	private static final String TAG = "RecipeParserThread";
 
-	//StaticAppStuff app;
+	// StaticAppStuff app;
 
 	private RecipesDataSource datasource;
 	private Handler handler = new Handler();
@@ -117,8 +117,10 @@ public class RecipeParserThread extends Thread {
 					if ( metaMatcher.find() ) {
 						// Log.d( TAG, String.format( "Meta-Tags: %s, %s  ",
 						// metaMatcher.group( 1 ), metaMatcher.group( 2 ) ) );
-						String grt = metaMatcher.group( 1 );
-						String grp = metaMatcher.group( 2 );
+						String grt = StringEscapeUtils
+								.unescapeHtml4( metaMatcher.group( 1 ) );
+						String grp = StringEscapeUtils
+								.unescapeHtml4( metaMatcher.group( 2 ) );
 						recipe.addClassifications( grt, grp );
 						if ( grt.equals( "Bewertung" ) ) {
 							recipeHasValuation = true;
@@ -142,15 +144,6 @@ public class RecipeParserThread extends Thread {
 												"Could not parse image tag %s\nNumberFormatException: %s",
 												thisLine, e.getMessage() ) );
 							}
-							/*
-							 * if ( ( recipe.getImageWidth() == 0 ) || (
-							 * recipe.getImageHeight() == 0 ) ) { Log.e( TAG,
-							 * String.format(
-							 * "Image %s has width: %d, height, %d",
-							 * recipe.getFile().toString(),
-							 * recipe.getImageWidth(), recipe.getImageHeight() )
-							 * ); }
-							 */
 						} else {
 							eofMatcher = eofPattern.matcher( thisLine );
 							if ( eofMatcher.find() ) {

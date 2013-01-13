@@ -121,7 +121,7 @@ public class RecipesDataSource {
 		open();
 
 		// breaking the query up to simplify the logic and help the optimiser
-		// first query builds a disinct list of the recipes that match the  
+		// first query builds a distinct list of the recipes that match the
 		StringBuilder sqlStatement = new StringBuilder(
 				"create temporary table results as select distinct c."
 						+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + " from "
@@ -143,7 +143,6 @@ public class RecipesDataSource {
 				+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + " order by "
 				+ DBHandler.RECIPE_TITLE );
 
-		
 		// becomes something like this:
 		// select file, title, imagefilename, imagewidth, imageheight
 		// from recipes r
@@ -184,10 +183,10 @@ public class RecipesDataSource {
 		}
 		cursor.close();
 
-		sqlStatement = new StringBuilder("drop table temp.results");
+		sqlStatement = new StringBuilder( "drop table temp.results" );
 		Log.d( TAG, sqlStatement.toString() );
 		database.execSQL( sqlStatement.toString() );
-		
+
 		close();
 		return recipes;
 
@@ -337,6 +336,12 @@ public class RecipesDataSource {
 
 	private static final boolean DISTINCT = true;
 
+	/**
+	 * Returns a list of String, String pairs. The first is a constant
+	 * "Category" and the second is the different categories we have
+	 * 
+	 * @return
+	 */
 	public List<HashMap<String, String>> getCategories() {
 		open();
 		List<HashMap<String, String>> categories = new ArrayList<HashMap<String, String>>();
@@ -349,9 +354,9 @@ public class RecipesDataSource {
 		cursor.moveToFirst();
 		while ( !cursor.isAfterLast() ) {
 			String category = cursor.getString( 0 );
-			HashMap<String, String> m = new HashMap<String, String>();
-			m.put( "colorName", category );
-			categories.add( m );
+			HashMap<String, String> map = new HashMap<String, String>();
+			map.put( "Category", category );
+			categories.add( map );
 			cursor.moveToNext();
 		}
 		cursor.close();
@@ -359,6 +364,11 @@ public class RecipesDataSource {
 		return categories;
 	}
 
+	/**
+	 * Returns a list of lists
+	 * 
+	 * @return
+	 */
 	public List<List<HashMap<String, String>>> getCategoryMembers() {
 		open();
 		List<List<HashMap<String, String>>> categoryMembers = new ArrayList<List<HashMap<String, String>>>();
@@ -388,8 +398,7 @@ public class RecipesDataSource {
 			}
 
 			HashMap<String, String> child = new HashMap<String, String>();
-			child.put( "shadeName", member );
-			child.put( "rgb", "gaga" );
+			child.put( "item", member );
 			secList.add( child );
 
 			cursor.moveToNext();
@@ -438,7 +447,6 @@ public class RecipesDataSource {
 		return search;
 	}
 
-	
 	/**
 	 * Deletes the saved search with the specified Id
 	 * 
@@ -448,57 +456,102 @@ public class RecipesDataSource {
 		RecipesDataSource datasource;
 		datasource = new RecipesDataSource( context );
 		datasource.open();
-		int deletedRows = datasource.database.delete ( DBHandler.TABLE_SEARCHPARAMS, DBHandler.SEARCHPARAMS_SEARCH_ID + "=?", new String [] { Integer.toString( searchId ) } );
-		Log.d( TAG, String.format("%d rows deleted from table %s", deletedRows, DBHandler.TABLE_SEARCHPARAMS) );
+		int deletedRows = datasource.database.delete(
+				DBHandler.TABLE_SEARCHPARAMS, DBHandler.SEARCHPARAMS_SEARCH_ID
+						+ "=?", new String[] { Integer.toString( searchId ) } );
+		Log.d( TAG, String.format( "%d rows deleted from table %s",
+				deletedRows, DBHandler.TABLE_SEARCHPARAMS ) );
 
-		deletedRows = datasource.database.delete ( DBHandler.TABLE_SEARCHES, DBHandler.SEARCH_ID + "=?", new String [] { Integer.toString( searchId ) } );
-		Log.d( TAG, String.format("%d rows deleted from table %s", deletedRows, DBHandler.TABLE_SEARCHES) );
+		deletedRows = datasource.database.delete( DBHandler.TABLE_SEARCHES,
+				DBHandler.SEARCH_ID + "=?",
+				new String[] { Integer.toString( searchId ) } );
+		Log.d( TAG, String.format( "%d rows deleted from table %s",
+				deletedRows, DBHandler.TABLE_SEARCHES ) );
 		datasource.close();
 	}
 
-	
 	/**
 	 * Saves the search
 	 * 
 	 */
-	public static void saveSearch( Context context, String description, String[] includeWords, String[] limitWords, String[] excludeWords ) {
+	public static void saveSearch( Context context, String description,
+			String[] includeWords, String[] limitWords, String[] excludeWords ) {
 		RecipesDataSource datasource;
 		datasource = new RecipesDataSource( context );
 		datasource.open();
-		
+
 		ContentValues contentValues = new ContentValues();
 		contentValues.put( DBHandler.SEARCH_DESCRIPTION, description );
-		long searchId = datasource.database.insert( DBHandler.TABLE_SEARCHES, null, contentValues );
-		Log.d( TAG, String.format("row %d inserted into table %s", searchId, DBHandler.TABLE_SEARCHES) );
-		
+		long searchId = datasource.database.insert( DBHandler.TABLE_SEARCHES,
+				null, contentValues );
+		Log.d( TAG, String.format( "row %d inserted into table %s", searchId,
+				DBHandler.TABLE_SEARCHES ) );
+
 		for ( String word : includeWords ) {
 			contentValues = new ContentValues();
 			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_ID, searchId );
-			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_FIELD, "I");
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_FIELD, "I" );
 			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_TERM, word );
-			long rowId = datasource.database.insert( DBHandler.TABLE_SEARCHPARAMS, null, contentValues );
-			Log.d( TAG, String.format("row %d inserted into table %s", rowId, DBHandler.TABLE_SEARCHPARAMS) );
+			long rowId = datasource.database.insert(
+					DBHandler.TABLE_SEARCHPARAMS, null, contentValues );
+			Log.d( TAG, String.format( "row %d inserted into table %s", rowId,
+					DBHandler.TABLE_SEARCHPARAMS ) );
 		}
 		for ( String word : excludeWords ) {
 			contentValues = new ContentValues();
 			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_ID, searchId );
-			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_FIELD, "E");
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_FIELD, "E" );
 			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_TERM, word );
-			long rowId = datasource.database.insert( DBHandler.TABLE_SEARCHPARAMS, null, contentValues );
-			Log.d( TAG, String.format("row %d inserted into table %s", rowId, DBHandler.TABLE_SEARCHPARAMS) );
+			long rowId = datasource.database.insert(
+					DBHandler.TABLE_SEARCHPARAMS, null, contentValues );
+			Log.d( TAG, String.format( "row %d inserted into table %s", rowId,
+					DBHandler.TABLE_SEARCHPARAMS ) );
 		}
 		for ( String word : limitWords ) {
 			contentValues = new ContentValues();
 			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_ID, searchId );
-			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_FIELD, "L");
+			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_FIELD, "L" );
 			contentValues.put( DBHandler.SEARCHPARAMS_SEARCH_TERM, word );
-			long rowId = datasource.database.insert( DBHandler.TABLE_SEARCHPARAMS, null, contentValues );
-			Log.d( TAG, String.format("row %d inserted into table %s", rowId, DBHandler.TABLE_SEARCHPARAMS) );
+			long rowId = datasource.database.insert(
+					DBHandler.TABLE_SEARCHPARAMS, null, contentValues );
+			Log.d( TAG, String.format( "row %d inserted into table %s", rowId,
+					DBHandler.TABLE_SEARCHPARAMS ) );
 		}
 
 		datasource.close();
 	}
 
-	
-	
+	/**
+	 * Returns the number of categories and number of items in the database and
+	 * handles all the connection nonsense
+	 * 
+	 * @return and array of int where [0] is the number of categories and [1] is
+	 *         the number of items and [2] is the number of recipe Items.
+	 */
+	public static long[] fetchCategoriesCount( Context context ) {
+		RecipesDataSource datasource;
+		datasource = new RecipesDataSource( context );
+		datasource.open();
+		long[] results = new long[3];
+
+		Cursor cursor = datasource.database.rawQuery( "Select distinct "
+				+ DBHandler.CLASSIFICATIONS_CATEGORY + " from "
+				+ DBHandler.TABLE_CLASSIFICATIONS, null );
+		results[0] = cursor.getCount();
+		cursor.close();
+
+		cursor = datasource.database.rawQuery( "Select distinct "
+				+ DBHandler.CLASSIFICATIONS_CATEGORY + ", "
+				+ DBHandler.CLASSIFICATIONS_MEMBER + " from "
+				+ DBHandler.TABLE_CLASSIFICATIONS, null );
+		results[1] = cursor.getCount();
+		cursor.close();
+		
+		results[2] = DatabaseUtils.queryNumEntries( datasource.database,
+				DBHandler.TABLE_CLASSIFICATIONS );
+
+		datasource.close();
+		return results;
+	}
+
 }

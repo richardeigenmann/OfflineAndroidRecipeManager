@@ -10,7 +10,7 @@ public class DBHandler extends SQLiteOpenHelper {
 	private static final String TAG = DBHandler.class.getName();
 
 	private static final String DATABASE_NAME = "recipes.db";
-	private static final int DATABASE_VERSION = 11;
+	private static final int DATABASE_VERSION = 12;
 
 	public static final String TABLE_RECIPES = "recipes";
 	public static final String RECIPE_TITLE = "title";
@@ -38,15 +38,21 @@ public class DBHandler extends SQLiteOpenHelper {
 	public static final String CLASSIFICATIONS_RECIPE_FILE = "recipe_file";
 	public static final String CLASSIFICATIONS_CATEGORY = "category";
 	public static final String CLASSIFICATIONS_MEMBER = "member";
+	public static final String INDEX_CLASSIFICATIONS_CATEGORY = "classifications_category";
 	public static final String INDEX_CLASSIFICATIONS_MEMBER = "classifications_member";
 	private static final String TABLE_CLASSIFICATIONS_CREATE = "create table "
 			+ TABLE_CLASSIFICATIONS + "(" + CLASSIFICATIONS_CATEGORY
 			+ " text not null, " + CLASSIFICATIONS_MEMBER + " text not null, "
 			+ CLASSIFICATIONS_RECIPE_FILE + " text not null " + ");";
 
-	private static final String INDEX_CLASSIFICATIONS_CREATE = "create index "
+	private static final String INDEX_CLASSIFICATIONS_CATEGORY_CREATE = "create index "
+			+ INDEX_CLASSIFICATIONS_CATEGORY + " on " + TABLE_CLASSIFICATIONS
+			+ "(" + CLASSIFICATIONS_CATEGORY + "," + CLASSIFICATIONS_MEMBER + ", " + CLASSIFICATIONS_RECIPE_FILE + ");";
+
+	private static final String INDEX_CLASSIFICATIONS_MEMBER_CREATE = "create index "
 			+ INDEX_CLASSIFICATIONS_MEMBER + " on " + TABLE_CLASSIFICATIONS
-			+ "(" + CLASSIFICATIONS_MEMBER + " asc );";
+			+ "(" + CLASSIFICATIONS_MEMBER + ", " + CLASSIFICATIONS_RECIPE_FILE + ");";
+	
 
 	public static final String TABLE_SEARCHES = "searches";
 	public static final String SEARCH_ID = "search_id";
@@ -107,8 +113,10 @@ public class DBHandler extends SQLiteOpenHelper {
 
 		Log.d( TAG, TABLE_CLASSIFICATIONS_CREATE );
 		database.execSQL( TABLE_CLASSIFICATIONS_CREATE );
-		Log.d( TAG, INDEX_CLASSIFICATIONS_CREATE );
-		database.execSQL( INDEX_CLASSIFICATIONS_CREATE );
+		Log.d( TAG, INDEX_CLASSIFICATIONS_CATEGORY_CREATE );
+		database.execSQL( INDEX_CLASSIFICATIONS_CATEGORY_CREATE );
+		Log.d( TAG, INDEX_CLASSIFICATIONS_MEMBER_CREATE );
+		database.execSQL( INDEX_CLASSIFICATIONS_MEMBER_CREATE );
 		
 		Log.d( TAG, TABLE_SEARCHES_CREATE );
 		database.execSQL( TABLE_SEARCHES_CREATE );
@@ -182,6 +190,8 @@ public class DBHandler extends SQLiteOpenHelper {
 				+ newVersion + ", which will destroy all old data" );
 		database.execSQL( "DROP INDEX IF EXISTS " + INDEX_RECIPE_TITLE );
 		database.execSQL( "DROP TABLE IF EXISTS " + TABLE_RECIPES );
+		database.execSQL( "DROP INDEX IF EXISTS "
+				+ INDEX_CLASSIFICATIONS_CATEGORY );
 		database.execSQL( "DROP INDEX IF EXISTS "
 				+ INDEX_CLASSIFICATIONS_MEMBER );
 		database.execSQL( "DROP TABLE IF EXISTS " + TABLE_CLASSIFICATIONS );

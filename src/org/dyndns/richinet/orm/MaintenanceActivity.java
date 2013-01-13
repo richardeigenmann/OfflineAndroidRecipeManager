@@ -51,16 +51,15 @@ public class MaintenanceActivity extends Activity {
 		} );
 
 		final Button button_go_firstrun = (Button) findViewById( R.id.button_go_firstrun );
-		button_go_firstrun
-				.setOnClickListener( new View.OnClickListener() {
+		button_go_firstrun.setOnClickListener( new View.OnClickListener() {
 
-					@Override
-					public void onClick( View v ) {
-						doGotoFirstRunButtonClick();
+			@Override
+			public void onClick( View v ) {
+				doGotoFirstRunButtonClick();
 
-					}
-				} );
-		
+			}
+		} );
+
 		updateStatus();
 	}
 
@@ -68,6 +67,7 @@ public class MaintenanceActivity extends Activity {
 	int totalRecipes = -1;
 	long recipesCount = -1;
 	long searchesCount = -1;
+	long[] categories = new long[3];
 
 	/**
 	 * Refresh the data for the status Widget
@@ -82,25 +82,22 @@ public class MaintenanceActivity extends Activity {
 	 */
 	private void updateStatusWidget() {
 		final TextView statusText = (TextView) findViewById( R.id.status_text );
-		statusText
-				.setText( String
-						.format(
-								"Last download: %s\nRecipes in DB: %d\nNew recipes since last download: %d\nTotal Server Recipes: %d\nSaved Searched: %d",
-								StaticAppStuff.getLastRunTimeStamp( this ),
-								recipesCount, newRecipes, totalRecipes,
-								searchesCount ) );
+		statusText.setText( String.format(
+				"Last download: %s\nRecipes in DB: %d\n"
+						+ "New recipes since last download: %d\n"
+						+ "Total Server Recipes: %d\n" + "Saved Searched: %d\n"
+						+ "Categories: %d, Items: %d, Recipe-Items: %d",
+				StaticAppStuff.getLastRunTimeStamp( this ), recipesCount,
+				newRecipes, totalRecipes, searchesCount, categories[0], categories[1], categories[2] ) );
 	}
 
 	/**
 	 * Connect to the DB and find out how many recipes we hold.
 	 */
 	private void askDB() {
-		//RecipesDataSource datasource;
-		//datasource = new RecipesDataSource( this );
-		//datasource.open();
 		recipesCount = RecipesDataSource.fetchRecipesCount( this );
-		//datasource.close();
 		searchesCount = RecipesDataSource.fetchSearchesCount( this );
+		categories = RecipesDataSource.fetchCategoriesCount( this );
 	}
 
 	/**
@@ -155,9 +152,8 @@ public class MaintenanceActivity extends Activity {
 
 	}
 
-	
 	/**
-	 * takes the user to the First Run  activity and closes this one.
+	 * takes the user to the First Run activity and closes this one.
 	 */
 	private void doGotoFirstRunButtonClick() {
 		Intent gotoFirstRunIntent = new Intent( this, FirstRunActivity.class );

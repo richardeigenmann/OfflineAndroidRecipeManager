@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -25,9 +24,9 @@ public class CategoryPickActivity extends ExpandableListActivity {
 	 */
 	private static final String TAG = "CategoryPickActivity";
 
-	private SimpleExpandableListAdapter expListAdapter;
+
 	private List<HashMap<String, String>> categories;
-	private List<List<HashMap<String, String>>> categoryMembers;
+	private List<List<HashMap<String, String>>> categoryItems;
 
 	private HashSet<String> picks = new HashSet<String>();
 
@@ -37,8 +36,10 @@ public class CategoryPickActivity extends ExpandableListActivity {
 		setContentView( R.layout.activity_category_pick );
 
 		RecipesDataSource datasource = new RecipesDataSource( this );
+		
+		// categories is a list of String, String pairs. 
 		categories = datasource.getCategories();
-		categoryMembers = datasource.getCategoryMembers();
+		categoryItems = datasource.getCategoryMembers();
 
 		String[] includeWords = getIntent().getStringArrayExtra( "picks" );
 		for ( String s : includeWords ) {
@@ -46,32 +47,32 @@ public class CategoryPickActivity extends ExpandableListActivity {
 			picks.add( s );
 		}
 
-		expListAdapter = new MySimpleExpandableListAdapter( this, categories, // groupData
-																				// describes
-																				// the
-																				// first-level
-																				// entries
-				R.layout.group_row, // Layout for the first-level entries
-				new String[] { "colorName" }, // Key in the groupData maps to
-												// display
-				new int[] { R.id.childname }, // Data under "colorName" key goes
-												// into this TextView
-				categoryMembers, // childData describes second-level entries
-				R.layout.child_row, // Layout for second-level entries
-				new String[] { "shadeName", "rgb" }, // Keys in childData maps
-														// to display
-				new int[] { R.id.childname, R.id.rgb } // Data under the keys
-														// above go into these
-														// TextViews
-		);
+		// this = context
+		// categories = the List of HashMaps with constant "Category", "Asiatisch"
+		// R.layout.activity_category_pick_category_row = the layout for the category rows
+		// new String[] { "Category" } = The Hashmap entry to map to the 
+		// new int[] { R.id.category } = The Textview elements they map to 
+		// categoryItems = the List of List of HashMap Items
+		// R.layout.activity_category_pick_item_row = the layout for the item rowm
+		// new String[] { "item" } = the map entries that are to be shown
+		// new int[] { R.id.item } = The Textview items to map them to
+		SimpleExpandableListAdapter expListAdapter = new MySimpleExpandableListAdapter( this, categories,
+				R.layout.activity_category_pick_category_row, 
+				new String[] { "Category" }, 
+				new int[] { R.id.category }, 
+				categoryItems, 
+				R.layout.activity_category_pick_item_row, 
+				new String[] { "item" }, 
+				new int[] { R.id.item } 
+		); 
+
+
 		setListAdapter( expListAdapter );
 
 		final Button button_ok = (Button) findViewById( R.id.button_ok );
 		button_ok.setOnClickListener( new View.OnClickListener() {
 			public void onClick( View v ) {
-				Log.d( TAG, "OK Button clicked" );
 				Intent resultIntent = new Intent();
-
 				resultIntent.putExtra( "picks", picks.toArray( new String[0] ) );
 				setResult( RESULT_OK, resultIntent );
 				finish();
@@ -82,6 +83,7 @@ public class CategoryPickActivity extends ExpandableListActivity {
 		button_clear.setOnClickListener( new View.OnClickListener() {
 			public void onClick( View v ) {
 				Log.d( TAG, "Clear Button clicked" );
+				picks.clear();
 			}
 		} );
 
@@ -92,10 +94,10 @@ public class CategoryPickActivity extends ExpandableListActivity {
 	 */
 	public boolean onChildClick( ExpandableListView parent, View v,
 			int groupPosition, int childPosition, long id ) {
-		String clickMember = categoryMembers.get( groupPosition )
-				.get( childPosition ).get( "shadeName" );
+		String clickMember = categoryItems.get( groupPosition )
+				.get( childPosition ).get( "item" );
 		Log.d( TAG, String.format( "onChildClick: %s", clickMember ) );
-		CheckBox cb = (CheckBox) v.findViewById( R.id.check1 );
+		CheckBox cb = (CheckBox) v.findViewById( R.id.pickcheckbox );
 		if ( cb != null ) {
 			if ( picks.contains( clickMember ) ) {
 				picks.remove( clickMember );
@@ -167,26 +169,21 @@ public class CategoryPickActivity extends ExpandableListActivity {
 		}
 
 		/**
-		 * This overriden method intercepts the Checkbox and sets it to checked
+		 * This overridden method intercepts the Checkbox and sets it to checked
 		 * if the string of the row is in the picks Set.
 		 * 
 		 * @see android.widget.SimpleExpandableListAdapter#getChildView(int,
 		 *      int, boolean, android.view.View, android.view.ViewGroup)
 		 */
 		@Override
-		public View getChildView( int groupPosition, int childPosition,
+		public View getChildView( int categoryPosition, int itemPosition,
 				boolean isLastChild, View convertView, ViewGroup parent ) {
-			View view = super.getChildView( groupPosition, childPosition,
+			View view = super.getChildView( categoryPosition, itemPosition,
 					isLastChild, convertView, parent );
-			// String member = categoryMembers.get( groupPosition )
-			// .get( childPosition ).get( "shadeName" );
-			boolean picked = isPicked( groupPosition, childPosition );
-			/*
-			 * Log.d( TAG, String.format(
-			 * "getChildView groupPosition: %d, childPosition: %d member: %s picked: %b"
-			 * , groupPosition, childPosition, member, picked ) );
-			 */
-			CheckBox cb = (CheckBox) view.findViewById( R.id.check1 );
+			String item = categoryItems.get( categoryPosition )
+					.get( itemPosition ).get( "item" );
+			boolean picked = picks.contains( item );
+			CheckBox cb = (CheckBox) view.findViewById( R.id.pickcheckbox );
 			cb.setChecked( picked );
 			cb.setClickable( false );
 			return view;
@@ -194,20 +191,5 @@ public class CategoryPickActivity extends ExpandableListActivity {
 
 	}
 
-	/**
-	 * Returns true if the group and child position refer to an item that is in
-	 * the picked Set.
-	 * 
-	 * @param groupPosition
-	 *            the group in the categoryMembers List
-	 * @param childPosition
-	 *            the child in the categoryMembers List
-	 * @return true if this is a picked item, false if not.
-	 */
-	private boolean isPicked( int groupPosition, int childPosition ) {
-		String member = categoryMembers.get( groupPosition )
-				.get( childPosition ).get( "shadeName" );
-		return picks.contains( member );
-	}
 
 }
