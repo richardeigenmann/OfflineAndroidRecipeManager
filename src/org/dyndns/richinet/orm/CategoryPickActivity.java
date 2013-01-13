@@ -38,8 +38,8 @@ public class CategoryPickActivity extends ExpandableListActivity {
 		RecipesDataSource datasource = new RecipesDataSource( this );
 		
 		// categories is a list of String, String pairs. 
-		categories = datasource.getCategories();
-		categoryItems = datasource.getCategoryMembers();
+		categories = datasource.getCategoriesList();
+		categoryItems = datasource.getCategoryItemsList();
 
 		String[] includeWords = getIntent().getStringArrayExtra( "picks" );
 		for ( String s : includeWords ) {
@@ -62,7 +62,7 @@ public class CategoryPickActivity extends ExpandableListActivity {
 				new int[] { R.id.category }, 
 				categoryItems, 
 				R.layout.activity_category_pick_item_row, 
-				new String[] { "item" }, 
+				new String[] { "Item" }, 
 				new int[] { R.id.item } 
 		); 
 
@@ -95,7 +95,7 @@ public class CategoryPickActivity extends ExpandableListActivity {
 	public boolean onChildClick( ExpandableListView parent, View v,
 			int groupPosition, int childPosition, long id ) {
 		String clickMember = categoryItems.get( groupPosition )
-				.get( childPosition ).get( "item" );
+				.get( childPosition ).get( "Item" );
 		Log.d( TAG, String.format( "onChildClick: %s", clickMember ) );
 		CheckBox cb = (CheckBox) v.findViewById( R.id.pickcheckbox );
 		if ( cb != null ) {

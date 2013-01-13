@@ -334,7 +334,21 @@ public class RecipesDataSource {
 		return recipesCount;
 	}
 
+	/**
+	 * defined here to make it obvious what the true for distinct is about.
+	 */
 	private static final boolean DISTINCT = true;
+
+	/**
+	 * A List of String, String pairs. The first is a constant "Category" and
+	 * the second is the different categories we have
+	 */
+	protected List<HashMap<String, String>> categoriesList = null;
+
+	/**
+	 * A List per category of a List of String, String pairs for the items
+	 */
+	protected List<List<HashMap<String, String>>> categoryItemsList = null;
 
 	/**
 	 * Returns a list of String, String pairs. The first is a constant
@@ -342,70 +356,107 @@ public class RecipesDataSource {
 	 * 
 	 * @return
 	 */
-	public List<HashMap<String, String>> getCategories() {
-		open();
-		List<HashMap<String, String>> categories = new ArrayList<HashMap<String, String>>();
-
-		Cursor cursor = database.query( DISTINCT,
-				DBHandler.TABLE_CLASSIFICATIONS,
-				new String[] { DBHandler.CLASSIFICATIONS_CATEGORY }, null,
-				null, null, null, DBHandler.CLASSIFICATIONS_CATEGORY, null );
-
-		cursor.moveToFirst();
-		while ( !cursor.isAfterLast() ) {
-			String category = cursor.getString( 0 );
-			HashMap<String, String> map = new HashMap<String, String>();
-			map.put( "Category", category );
-			categories.add( map );
-			cursor.moveToNext();
+	public List<HashMap<String, String>> getCategoriesList() {
+		if ( categoriesList == null ) {
+			cacheCategoriesLists();
 		}
-		cursor.close();
-		close();
-		return categories;
+		return categoriesList;
 	}
 
 	/**
-	 * Returns a list of lists
+	 * Returns a list of categories where each entry is a list of hashmap
+	 * entries for each item
 	 * 
 	 * @return
 	 */
-	public List<List<HashMap<String, String>>> getCategoryMembers() {
-		open();
-		List<List<HashMap<String, String>>> categoryMembers = new ArrayList<List<HashMap<String, String>>>();
+	public List<List<HashMap<String, String>>> getCategoryItemsList() {
+		if ( categoriesList == null ) {
+			cacheCategoriesLists();
+		}
+		return categoryItemsList;
+	}
 
-		Cursor cursor = database.query( DISTINCT,
-				DBHandler.TABLE_CLASSIFICATIONS, new String[] {
-						DBHandler.CLASSIFICATIONS_CATEGORY,
-						DBHandler.CLASSIFICATIONS_MEMBER }, null, null, null,
-				null, DBHandler.CLASSIFICATIONS_CATEGORY + ","
-						+ DBHandler.CLASSIFICATIONS_MEMBER, null );
+	/**
+	 * builds a the list of categories and list of category items
+	 * 
+	 * @return
+	 */
+	public void cacheCategoriesLists() {
+		open();
+
+		List<HashMap<String, String>> newCategoriesList = new ArrayList<HashMap<String, String>>();
+		List<List<HashMap<String, String>>> newCategoryItemsList = new ArrayList<List<HashMap<String, String>>>();
+
+		Cursor cursor = database.query( DISTINCT, // boolean distinct
+				DBHandler.TABLE_CLASSIFICATIONS, // table
+				new String[] { DBHandler.CLASSIFICATIONS_CATEGORY,
+						DBHandler.CLASSIFICATIONS_MEMBER } // columns
+				, null, null, null, null, DBHandler.CLASSIFICATIONS_CATEGORY
+						+ "," + DBHandler.CLASSIFICATIONS_MEMBER // order by
+				, null );
 
 		cursor.moveToFirst();
 
-		String currentCategory = "";
-		List<HashMap<String, String>> secList = null;
+		String category, currentCategory = "";
+		List<HashMap<String, String>> itemsList = null;
 		while ( !cursor.isAfterLast() ) {
-			String newCategory = cursor.getString( 0 );
-			String member = cursor.getString( 1 );
-			if ( !( newCategory.equals( currentCategory ) ) ) {
+			category = cursor.getString( 0 );
+			String item = cursor.getString( 1 );
+			if ( !( category.equals( currentCategory ) ) ) {
 				// we are on a new category in the table
-				if ( !( secList == null ) ) {
-					// attach the secondary list to the result set
-					categoryMembers.add( secList );
-				}
-				secList = new ArrayList<HashMap<String, String>>();
-				currentCategory = newCategory;
+				HashMap<String, String> categoryMap = new HashMap<String, String>();
+				categoryMap.put( "Category", category );
+				newCategoriesList.add( categoryMap );
+
+				itemsList = new ArrayList<HashMap<String, String>>();
+				newCategoryItemsList.add( itemsList );
+				currentCategory = category;
 			}
 
 			HashMap<String, String> child = new HashMap<String, String>();
-			child.put( "item", member );
-			secList.add( child );
+			child.put( "Item", item );
+			itemsList.add( child );
 
 			cursor.moveToNext();
 		}
 		cursor.close();
 		close();
-		return categoryMembers;
+
+		categoriesList = newCategoriesList;
+		categoryItemsList = newCategoryItemsList;
+	}
+
+	/**
+	 * dumps the categories list to the log.
+	 */
+	public void dumpCategoriesList() {
+		int i = 0;
+		for ( HashMap<String, String> map : categoriesList ) {
+			for ( String key : map.keySet() ) {
+				Log.d( TAG,
+						String.format( "i: %d, key: %s, value: %s", i, key,
+								map.get( key ) ) );
+				i++;
+			}
+		}
+	}
+
+	/**
+	 * dump category Items List
+	 */
+	public void dumpCategoryItemsList() {
+		int i = 0, j = 0;
+		for ( List<HashMap<String, String>> list : categoryItemsList ) {
+			for ( HashMap<String, String> map : list ) {
+				for ( String key : map.keySet() ) {
+					Log.d( TAG, String.format(
+							"list: %d, map: %d, key: %s, value: %s", i, j, key,
+							map.get( key ) ) );
+					j++;
+				}
+			}
+			i++;
+		}
 	}
 
 	/**
@@ -546,7 +597,7 @@ public class RecipesDataSource {
 				+ DBHandler.TABLE_CLASSIFICATIONS, null );
 		results[1] = cursor.getCount();
 		cursor.close();
-		
+
 		results[2] = DatabaseUtils.queryNumEntries( datasource.database,
 				DBHandler.TABLE_CLASSIFICATIONS );
 

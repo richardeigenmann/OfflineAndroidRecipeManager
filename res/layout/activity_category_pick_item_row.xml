@@ -7,7 +7,7 @@
     <TextView android:id="@+id/item"
          android:paddingLeft="50dp"
          android:focusable="false"
-         android:layout_width="0dp"
+         android:layout_width="fill_parent"
          android:layout_weight="1"
          android:layout_height="wrap_content"/>
 

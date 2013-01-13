@@ -12,9 +12,7 @@
 
     <TextView
         android:id="@+id/include_words"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10" />
+        style="@style/pickedCategory" />
 
     <Button
         android:id="@+id/advanced_button_limit"
@@ -24,9 +22,7 @@
 
     <TextView
         android:id="@+id/limit_words"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10" />
+        style="@style/pickedCategory" />
 
     <Button
         android:id="@+id/advanced_button_exclude"
@@ -36,10 +32,7 @@
 
     <TextView
         android:id="@+id/exclude_words"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:focusable="false" />
+        style="@style/pickedCategory" />
 
     <LinearLayout
         android:layout_width="fill_parent"
@@ -48,18 +41,18 @@
         android:orientation="horizontal" >
 
         <Button
-            android:id="@+id/advanced_button_search"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/advanced_button_search" />
-
-        <Button
             android:id="@+id/advanced_button_save"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/advanced_button_save" />
+
+        <Button
+            android:id="@+id/advanced_button_search"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/advanced_button_search" />
     </LinearLayout>
 
 </LinearLayout>
