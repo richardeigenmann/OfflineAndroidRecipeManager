@@ -24,7 +24,6 @@ public class CategoryPickActivity extends ExpandableListActivity {
 	 */
 	private static final String TAG = "CategoryPickActivity";
 
-
 	private List<HashMap<String, String>> categories;
 	private List<List<HashMap<String, String>>> categoryItems;
 
@@ -33,39 +32,39 @@ public class CategoryPickActivity extends ExpandableListActivity {
 	@Override
 	public void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
+
 		setContentView( R.layout.activity_category_pick );
 
 		RecipesDataSource datasource = new RecipesDataSource( this );
-		
-		// categories is a list of String, String pairs. 
+
+		// categories is a list of String, String pairs.
 		categories = datasource.getCategoriesList();
 		categoryItems = datasource.getCategoryItemsList();
 
-		String[] includeWords = getIntent().getStringArrayExtra( "picks" );
-		for ( String s : includeWords ) {
-			// Log.d( TAG, s );
+		String[] pickedWords = getIntent().getStringArrayExtra( "picks" );
+		for ( String s : pickedWords ) {
+			Log.d( TAG, String.format(
+					"Starting activity with picks string: %s", s ) );
 			picks.add( s );
 		}
 
 		// this = context
-		// categories = the List of HashMaps with constant "Category", "Asiatisch"
-		// R.layout.activity_category_pick_category_row = the layout for the category rows
-		// new String[] { "Category" } = The Hashmap entry to map to the 
-		// new int[] { R.id.category } = The Textview elements they map to 
+		// categories = the List of HashMaps with constant "Category",
+		// "Asiatisch"
+		// R.layout.activity_category_pick_category_row = the layout for the
+		// category rows
+		// new String[] { "Category" } = The Hashmap entry to map to the
+		// new int[] { R.id.category } = The Textview elements they map to
 		// categoryItems = the List of List of HashMap Items
-		// R.layout.activity_category_pick_item_row = the layout for the item rowm
+		// R.layout.activity_category_pick_item_row = the layout for the item
+		// rowm
 		// new String[] { "item" } = the map entries that are to be shown
 		// new int[] { R.id.item } = The Textview items to map them to
-		SimpleExpandableListAdapter expListAdapter = new MySimpleExpandableListAdapter( this, categories,
-				R.layout.activity_category_pick_category_row, 
-				new String[] { "Category" }, 
-				new int[] { R.id.category }, 
-				categoryItems, 
-				R.layout.activity_category_pick_item_row, 
-				new String[] { "Item" }, 
-				new int[] { R.id.item } 
-		); 
-
+		SimpleExpandableListAdapter expListAdapter = new MySimpleExpandableListAdapter(
+				this, categories, R.layout.activity_category_pick_category_row,
+				new String[] { "Category" }, new int[] { R.id.category },
+				categoryItems, R.layout.activity_category_pick_item_row,
+				new String[] { "Item" }, new int[] { R.id.item } );
 
 		setListAdapter( expListAdapter );
 
@@ -181,7 +180,7 @@ public class CategoryPickActivity extends ExpandableListActivity {
 			View view = super.getChildView( categoryPosition, itemPosition,
 					isLastChild, convertView, parent );
 			String item = categoryItems.get( categoryPosition )
-					.get( itemPosition ).get( "item" );
+					.get( itemPosition ).get( "Item" );
 			boolean picked = picks.contains( item );
 			CheckBox cb = (CheckBox) view.findViewById( R.id.pickcheckbox );
 			cb.setChecked( picked );
@@ -190,6 +189,5 @@ public class CategoryPickActivity extends ExpandableListActivity {
 		}
 
 	}
-
 
 }
