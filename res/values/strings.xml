@@ -55,6 +55,7 @@
     <!-- <string name="serverurltitle">Server Url:</string> -->
     <!--<string name="serverulsummary">Server Url:</string>-->
     <!--<string name="main_no_items">No items</string>-->
+    <string name="button_reset_url">Reset Download URL</string>
     
 
 </resources>

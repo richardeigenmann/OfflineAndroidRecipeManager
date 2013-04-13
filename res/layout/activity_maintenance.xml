@@ -30,6 +30,12 @@
         android:text="@string/button_wipe_db" />
 
     <Button
+        android:id="@+id/button_reset_url"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/button_reset_url" />
+
+    <Button
         android:id="@+id/button_go_firstrun"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"

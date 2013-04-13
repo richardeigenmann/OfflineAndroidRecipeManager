@@ -19,13 +19,13 @@ public class HttpRetriever {
 	private static final String TAG = "HttpRetriever";
 
 	/**
-	 * Connects to the url and returns the result as a StringBuilder object
+	 * Connects to the url and returns the result as an ArrayList object
 	 * 
 	 * @param url
 	 *            The URL to read
 	 * @return the response
 	 */
-	public static ArrayList<String> retrieveFromURL( String url )
+	public static ArrayList<String> retrieveLinesFromUrl( String url )
 			throws IllegalArgumentException, IOException {
 		Log.i( TAG, "Retrieving data from URL: " + url );
 		InputStream is = null;
@@ -53,5 +53,50 @@ public class HttpRetriever {
 						lines.size(), url ) );
 		return lines;
 	}
+	
+	
+	/**
+	 * Connects to the url and returns the result as a String object
+	 * 
+	 * 
+	 * @param url
+	 *            The URL to read
+	 * @return the response
+	 */
+	public static String retrieveStringFromUrl( String url )
+			throws IllegalArgumentException, IOException {
+		Log.i( TAG, "Retrieving data from URL: " + url );
+		InputStream is = null;
+		long startTime = System.currentTimeMillis();
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpPost httpPost = new HttpPost( url );
+		HttpResponse response = httpClient.execute( httpPost );
+		HttpEntity entity = response.getEntity();
+		is = entity.getContent();
 
+		StringBuilder sb = new StringBuilder();
+		try {
+			BufferedReader reader = new BufferedReader( new InputStreamReader(
+					is, "iso-8859-1" ), 8 );
+
+			String line = null;
+			while ( ( line = reader.readLine() ) != null ) {
+				sb.append( line + "\n" );
+			}
+			is.close();
+		} catch ( Exception e ) {
+			Log.e( TAG, "Error converting result: " + e.toString() );
+		}
+		duration = System.currentTimeMillis() - startTime;
+		Log.i( TAG,
+				String.format( "Retrieved %d characters in %dms from from URL: %s",
+						sb.length(), duration, url ) );
+		return sb.toString();
+	}
+
+	/**
+	 * The duration of the download in ms
+	 */
+	public static long duration = 0;
+	
 }

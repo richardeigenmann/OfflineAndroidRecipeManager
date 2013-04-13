@@ -137,6 +137,7 @@ public class Recipe {
 		return hasImage;
 	}
 
+	
 	/**
 	 * Sets whether the recipe has an image
 	 * 
@@ -147,6 +148,8 @@ public class Recipe {
 	public void setHasImage( boolean hasImage ) {
 		this.hasImage = hasImage;
 	}
+
+
 
 	/**
 	 * A list of classifications that this recipe holds

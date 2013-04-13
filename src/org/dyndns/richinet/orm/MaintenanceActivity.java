@@ -5,8 +5,10 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -50,6 +52,13 @@ public class MaintenanceActivity extends Activity {
 			}
 		} );
 
+		final Button button_reset_url = (Button) findViewById( R.id.button_reset_url );
+		button_reset_url.setOnClickListener( new View.OnClickListener() {
+			public void onClick( View v ) {
+				doResetUrlButtonClick();
+			}
+		} );
+
 		final Button button_go_firstrun = (Button) findViewById( R.id.button_go_firstrun );
 		button_go_firstrun.setOnClickListener( new View.OnClickListener() {
 
@@ -68,6 +77,7 @@ public class MaintenanceActivity extends Activity {
 	long recipesCount = -1;
 	long searchesCount = -1;
 	long[] categories = new long[3];
+	String Url = "undefined";
 
 	/**
 	 * Refresh the data for the status Widget
@@ -75,8 +85,24 @@ public class MaintenanceActivity extends Activity {
 	private void updateStatus() {
 		askWebServer();
 		askDB();
+		Url = StaticAppStuff.getRecipesDataUrl( this );
 	}
 
+	/**
+	 * Updates the Status widget on a new handler thread.
+	 * @param h the Handler
+	 */
+	private void updateStatusWidget( Handler h) {
+		h.post( new Runnable() {
+
+			@Override
+			public void run() {
+				updateStatusWidget();
+
+			}
+		} );
+	}
+	
 	/**
 	 * Update the status widget with the details found in the variables.
 	 */
@@ -86,9 +112,11 @@ public class MaintenanceActivity extends Activity {
 				"Last download: %s\nRecipes in DB: %d\n"
 						+ "New recipes since last download: %d\n"
 						+ "Total Server Recipes: %d\n" + "Saved Searched: %d\n"
-						+ "Categories: %d, Items: %d, Recipe-Items: %d",
+						+ "Categories: %d, Items: %d, Recipe-Items: %d\n"
+						+ "URL: %s",
 				StaticAppStuff.getLastRunTimeStamp( this ), recipesCount,
-				newRecipes, totalRecipes, searchesCount, categories[0], categories[1], categories[2] ) );
+				newRecipes, totalRecipes, searchesCount, categories[0],
+				categories[1], categories[2], Url ) );
 	}
 
 	/**
@@ -109,12 +137,12 @@ public class MaintenanceActivity extends Activity {
 
 			@Override
 			public void run() {
-				String fullUrl = StaticAppStuff
+				String newCountUrl = StaticAppStuff
 						.getNewCountUrl( MaintenanceActivity.this );
-				Log.d( TAG, "fullUrl: " + fullUrl );
+				Log.d( TAG, "NewCountUrl: " + newCountUrl );
 				ArrayList<String> lines = null;
 				try {
-					lines = HttpRetriever.retrieveFromURL( fullUrl );
+					lines = HttpRetriever.retrieveLinesFromUrl( newCountUrl );
 				} catch ( IllegalArgumentException e ) {
 					e.printStackTrace();
 					Log.e( TAG, "IllegalArgumentException: " + e.toString() );
@@ -126,14 +154,15 @@ public class MaintenanceActivity extends Activity {
 				String[] counts = lines.get( 0 ).split( "/" );
 				newRecipes = Integer.parseInt( counts[0] );
 				totalRecipes = Integer.parseInt( counts[1] );
-				h.post( new Runnable() {
+				updateStatusWidget( h );
+				/*h.post( new Runnable() {
 
 					@Override
 					public void run() {
 						updateStatusWidget();
 
 					}
-				} );
+				} ); */
 			}
 		};
 		r.start();
@@ -150,6 +179,23 @@ public class MaintenanceActivity extends Activity {
 		datasource.close();
 		updateStatus();
 
+	}
+
+	/**
+	 * handles the reset url button
+	 */
+	private void doResetUrlButtonClick() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences( this );
+		String URL = prefs.getString( "serverurl", "no URL" );
+		Log.d(TAG, "Prefs are: " + URL);
+
+		SharedPreferences.Editor editor = PreferenceManager
+				.getDefaultSharedPreferences( this ).edit();
+		editor.putString( "serverurl", null );
+		editor.commit();
+		updateStatus();
+		updateStatusWidget();
 	}
 
 	/**

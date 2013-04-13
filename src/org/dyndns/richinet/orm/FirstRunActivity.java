@@ -133,7 +133,7 @@ public class FirstRunActivity extends Activity implements DownloaderInterface {
 				Log.d( TAG, "Info Url: " + url );
 				ArrayList<String> lines = null;
 				try {
-					lines = HttpRetriever.retrieveFromURL( url );
+					lines = HttpRetriever.retrieveLinesFromUrl( url );
 					String[] counts = lines.get( 0 ).split( "/" );
 					int newRecipes = Integer.parseInt( counts[0] );
 					// int totalRecipes = Integer.parseInt( counts[1] );

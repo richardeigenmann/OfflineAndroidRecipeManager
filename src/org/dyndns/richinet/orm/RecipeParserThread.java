@@ -3,16 +3,23 @@ package org.dyndns.richinet.orm;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 public class RecipeParserThread extends Thread {
+
+	// TODO: Re-write this class with the JASON parser
 
 	/**
 	 * Tag for the logger
@@ -39,9 +46,11 @@ public class RecipeParserThread extends Thread {
 	@Override
 	public void run() {
 		String fullUrl = StaticAppStuff.getRecipesDataUrl( context );
-		ArrayList<String> lines = null;
+		// ArrayList<String> lines = null;
+		String jsonData = "";
 		try {
-			lines = HttpRetriever.retrieveFromURL( fullUrl );
+			// lines = HttpRetriever.retrieveLinesFromUrl( fullUrl );
+			jsonData = HttpRetriever.retrieveStringFromUrl( fullUrl );
 		} catch ( IllegalArgumentException e ) {
 			e.printStackTrace();
 			Log.e( TAG, "IllegalArgumentException: " + e.toString() );
@@ -50,9 +59,12 @@ public class RecipeParserThread extends Thread {
 			Log.e( TAG, "IOException: " + e.toString() );
 		}
 
+		sendLongToast( String.format( "Retrieved %d characters in %dms from server",
+				jsonData.length(), HttpRetriever.duration  ) );
+		
 		datasource = new RecipesDataSource( context );
 		datasource.open();
-		int parsedRecipes = parse( lines );
+		int parsedRecipes = jsonParse( jsonData );
 		if ( parsedRecipes > 0 ) {
 			StaticAppStuff.saveLastDownloadTimestamp( context, new Date() );
 		}
@@ -168,6 +180,82 @@ public class RecipeParserThread extends Thread {
 		return countRecipes;
 	}
 
+	/**
+	 * Parses the lines and creates recipe entries in the database
+	 * 
+	 * @param lines
+	 *            the source lines from the recipe grep
+	 * @return the number of recipes parsed or -1 if there was an error.
+	 */
+	private int jsonParse( String jsonString ) {
+		long startTime = System.currentTimeMillis();
+		int countRecipes = 0;
+		try {
+			JSONObject jObject = new JSONObject( jsonString );
+
+			Iterator<?> keys = jObject.keys();
+
+			// create variables outside the loop to avoid re-creating them over and over again.
+			String key;
+			Recipe recipe;
+			String category;
+			String escapedCategory;
+			String grp;
+			while ( keys.hasNext() ) {
+				key = (String) keys.next();
+				Object recipeObject = jObject.get( key );
+				if ( recipeObject instanceof JSONObject ) {
+					countRecipes++;
+					if ( countRecipes % 5 == 0 ) {
+						sendShortToast( String.format( "%d recipes parsed",
+								countRecipes ) );
+					}
+					recipe = new Recipe();
+					recipe.setFile( key );
+					JSONObject recipeJsonObject = (JSONObject) recipeObject;
+					recipe.setTitle( StringEscapeUtils
+							.unescapeHtml4( recipeJsonObject.getString( "name" ) ) );
+					recipe.setImageFilename( recipeJsonObject
+							.getString( "imageFilename" ) );
+					recipe.setImageWidth( recipeJsonObject.getInt( "width" ) );
+					recipe.setImageHeight( recipeJsonObject.getInt( "height" ) );
+					JSONObject recipeCategories = (JSONObject) recipeJsonObject
+							.get( "categories" );
+
+					Iterator<?> grt = recipeCategories.keys();
+					while ( grt.hasNext() ) {
+						category = (String) grt.next();
+						escapedCategory = StringEscapeUtils
+								.unescapeHtml4( category );
+						JSONArray entries = recipeCategories
+								.getJSONArray( category );
+						// Log.d(TAG, key + " - " + category + ": "
+						// +entries.length() + " entries");
+
+						for ( int i = 0; i < entries.length(); i++ ) {
+							grp = StringEscapeUtils
+									.unescapeHtml4( (String) entries.get( i ) );
+							recipe.addClassifications( escapedCategory, grp );
+						}
+					}
+					// recipe.dumpToLog();
+					addRecipeToCollection( recipe );
+					incrementProgress();
+				}
+			}
+		} catch ( JSONException e ) {
+			Log.e( TAG, "JSONException: " + e.toString() );
+			e.printStackTrace();
+		}
+		long duration = System.currentTimeMillis() - startTime;
+		Log.d( TAG, String.format( "Parsed %d recipes in %dms", countRecipes,
+				duration ) );
+		sendLongToast( String.format( "Parsed %d recipes in %dms",
+				countRecipes, duration ) );
+
+		return countRecipes;
+	}
+
 	public void addRecipeToCollection( Recipe recipe ) {
 		datasource.insertRecipe( recipe );
 	}
@@ -191,6 +279,36 @@ public class RecipeParserThread extends Thread {
 			}
 		} );
 
+	}
+
+	/**
+	 * use the handler to send a toast to the UI
+	 * 
+	 * @param message
+	 */
+	private void sendLongToast( final String message ) {
+		handler.post( new Runnable() {
+
+			@Override
+			public void run() {
+				Toast.makeText( context, message, Toast.LENGTH_LONG ).show();
+			}
+		} );
+	}
+
+	/**
+	 * use the handler to send a toast to the UI
+	 * 
+	 * @param message
+	 */
+	private void sendShortToast( final String message ) {
+		handler.post( new Runnable() {
+
+			@Override
+			public void run() {
+				Toast.makeText( context, message, Toast.LENGTH_SHORT ).show();
+			}
+		} );
 	}
 
 }
