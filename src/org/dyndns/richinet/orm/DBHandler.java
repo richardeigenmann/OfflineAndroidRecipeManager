@@ -41,18 +41,29 @@ public class DBHandler extends SQLiteOpenHelper {
 	public static final String INDEX_CLASSIFICATIONS_CATEGORY = "classifications_category";
 	public static final String INDEX_CLASSIFICATIONS_MEMBER = "classifications_member";
 	private static final String TABLE_CLASSIFICATIONS_CREATE = "create table "
-			+ TABLE_CLASSIFICATIONS + "(" + CLASSIFICATIONS_CATEGORY
-			+ " text not null, " + CLASSIFICATIONS_MEMBER + " text not null, "
-			+ CLASSIFICATIONS_RECIPE_FILE + " text not null " + ");";
+			+ TABLE_CLASSIFICATIONS + "(" + CLASSIFICATIONS_RECIPE_FILE
+			+ " text not null " + CLASSIFICATIONS_CATEGORY + " text not null, "
+			+ CLASSIFICATIONS_MEMBER + " text not null, " + ");";
 
 	private static final String INDEX_CLASSIFICATIONS_CATEGORY_CREATE = "create index "
-			+ INDEX_CLASSIFICATIONS_CATEGORY + " on " + TABLE_CLASSIFICATIONS
-			+ "(" + CLASSIFICATIONS_CATEGORY + "," + CLASSIFICATIONS_MEMBER + ", " + CLASSIFICATIONS_RECIPE_FILE + ");";
+			+ INDEX_CLASSIFICATIONS_CATEGORY
+			+ " on "
+			+ TABLE_CLASSIFICATIONS
+			+ "("
+			+ CLASSIFICATIONS_CATEGORY
+			+ ","
+			+ CLASSIFICATIONS_MEMBER
+			+ ", " + CLASSIFICATIONS_RECIPE_FILE + ");";
 
 	private static final String INDEX_CLASSIFICATIONS_MEMBER_CREATE = "create index "
-			+ INDEX_CLASSIFICATIONS_MEMBER + " on " + TABLE_CLASSIFICATIONS
-			+ "(" + CLASSIFICATIONS_MEMBER + ", " + CLASSIFICATIONS_RECIPE_FILE + ");";
-	
+			+ INDEX_CLASSIFICATIONS_MEMBER
+			+ " on "
+			+ TABLE_CLASSIFICATIONS
+			+ "("
+			+ CLASSIFICATIONS_MEMBER
+			+ ", "
+			+ CLASSIFICATIONS_RECIPE_FILE
+			+ ");";
 
 	public static final String TABLE_SEARCHES = "searches";
 	public static final String SEARCH_ID = "search_id";
@@ -80,9 +91,9 @@ public class DBHandler extends SQLiteOpenHelper {
 	public static final String INDEX_SEARCHPARAMS = "search_parameters_index";
 	private static final String INDEX_SEARCHPARAMS_CREATE = "create index "
 			+ INDEX_SEARCHPARAMS + " on " + TABLE_SEARCHPARAMS + "("
-			+ SEARCHPARAMS_SEARCH_ID + " asc, " + SEARCHPARAMS_SEARCH_FIELD + " asc);";
+			+ SEARCHPARAMS_SEARCH_ID + " asc, " + SEARCHPARAMS_SEARCH_FIELD
+			+ " asc);";
 
-	
 	/**
 	 * Remember the Context
 	 */
@@ -117,7 +128,7 @@ public class DBHandler extends SQLiteOpenHelper {
 		database.execSQL( INDEX_CLASSIFICATIONS_CATEGORY_CREATE );
 		Log.d( TAG, INDEX_CLASSIFICATIONS_MEMBER_CREATE );
 		database.execSQL( INDEX_CLASSIFICATIONS_MEMBER_CREATE );
-		
+
 		Log.d( TAG, TABLE_SEARCHES_CREATE );
 		database.execSQL( TABLE_SEARCHES_CREATE );
 		Log.d( TAG, INDEX_SEARCHES_CREATE );
@@ -127,7 +138,7 @@ public class DBHandler extends SQLiteOpenHelper {
 		database.execSQL( TABLE_SEARCHPARAMS_CREATE );
 		Log.d( TAG, INDEX_SEARCHPARAMS_CREATE );
 		database.execSQL( INDEX_SEARCHPARAMS_CREATE );
-		
+
 		insertPredefinedSearches( database );
 
 		StaticAppStuff.wipeLastDownloadTimestamp( context );
@@ -135,6 +146,7 @@ public class DBHandler extends SQLiteOpenHelper {
 
 	/**
 	 * Inserts predefined searches
+	 * 
 	 * @param database
 	 */
 	private void insertPredefinedSearches( SQLiteDatabase database ) {
@@ -198,8 +210,7 @@ public class DBHandler extends SQLiteOpenHelper {
 		database.execSQL( "DROP INDEX IF EXISTS " + INDEX_SEARCHES_DESCRIPTION );
 		database.execSQL( "DROP INDEX IF EXISTS " + INDEX_SEARCHES_DESCRIPTION );
 		database.execSQL( "DROP TABLE IF EXISTS " + TABLE_SEARCHES );
-		database.execSQL( "DROP INDEX IF EXISTS "
-				+ INDEX_SEARCHPARAMS );
+		database.execSQL( "DROP INDEX IF EXISTS " + INDEX_SEARCHPARAMS );
 		database.execSQL( "DROP TABLE IF EXISTS " + TABLE_SEARCHPARAMS );
 
 		onCreate( database );

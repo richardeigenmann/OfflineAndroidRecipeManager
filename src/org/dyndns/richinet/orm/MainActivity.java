@@ -1,13 +1,12 @@
 package org.dyndns.richinet.orm;
 
-import java.util.List;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -16,10 +15,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
@@ -77,53 +76,46 @@ public class MainActivity extends Activity {
 			}
 		} );
 
+		RecipesDataSource datasource = new RecipesDataSource( this );
+		cursor = datasource.getSavedSearchesAsCursor();
+		startManagingCursor( cursor );
+		myAdapter = new SimpleCursorAdapter( this,
+				R.layout.activity_main_saved_search_row, cursor,
+				new String[] { DBHandler.SEARCH_DESCRIPTION },
+				new int[] { R.id.name_entry } );
+		
 
-		fetchSearches();
-
-		adapter = new ArrayAdapter<Search>( this,
-				android.R.layout.simple_list_item_1, searches );
 		ListView listView = (ListView) findViewById( R.id.searchesListView );
-		listView.setAdapter( adapter );
+		listView.setAdapter( myAdapter );
 
 		listView.setOnItemClickListener( new OnItemClickListener() {
 
 			@Override
 			public void onItemClick( AdapterView<?> parent, View view,
 					int position, long r_id ) {
-				clickedSavedSearch = adapter.getItem( position );
+				clickedSavedSearch = (Cursor) myAdapter.getItem( position );
 				Log.i( TAG, String.format(
 						"Click on item %d for searchId %d for %s", position,
-						clickedSavedSearch.getSearchId(),
-						clickedSavedSearch.getDescription() ) );
+						clickedSavedSearch.getInt( 0 ),
+						clickedSavedSearch.getString( 1 ) ) );
 				showDialog( SAVED_QUERY_DIALOG );
 			}
 		} );
 
 	}
 
-	/**
-	 * The list of searches
-	 */
-	private List<Search> searches = null;
+	private Cursor cursor;
 	
 	/**
 	 * The array adapter to show it
 	 */
-	private ArrayAdapter<Search> adapter;
+	private SimpleCursorAdapter myAdapter;
 
-	/**
-	 * refreshes the list of searches
-	 */
-	private void fetchSearches() {
-		RecipesDataSource datasource = new RecipesDataSource( this );
-		searches = datasource.getSearches();
-	}
-	
 	/**
 	 * Memorise the saved search that was clicked for the dialog. TODO: Is this
 	 * the way to do it, holding a reference in the activity? Why ever not?
 	 */
-	private Search clickedSavedSearch = null;
+	private Cursor clickedSavedSearch = null;
 
 	/**
 	 * Inflate an option menu
@@ -212,7 +204,7 @@ public class MainActivity extends Activity {
 		case SAVED_QUERY_DIALOG:
 			( (AlertDialog) dialog ).setTitle( "Saved Search" );
 			( (AlertDialog) dialog ).setMessage( clickedSavedSearch
-					.getDescription() );
+					.getString( 1 ) );
 			break;
 		}
 	}
@@ -222,13 +214,8 @@ public class MainActivity extends Activity {
 	 * variable.
 	 */
 	private void doExecuteSavedSearch() {
-		Toast.makeText(
-				this,
-				"You want to execute saved query "
-						+ clickedSavedSearch.getDescription(),
-				Toast.LENGTH_LONG ).show();
 		Intent searchIntent = new Intent( this, ResultScrollerActivity.class );
-		searchIntent.putExtra( "searchId", clickedSavedSearch.getSearchId() );
+		searchIntent.putExtra( "searchId", clickedSavedSearch.getInt( 0 ) );
 		startActivity( searchIntent );
 	}
 
@@ -237,12 +224,12 @@ public class MainActivity extends Activity {
 	 * variable.
 	 */
 	private void doDeleteSavedSearch() {
-		RecipesDataSource.deleteSavedSearch( this,
-				clickedSavedSearch.getSearchId() );
-		fetchSearches();
-		adapter.notifyDataSetChanged();
+		RecipesDataSource.deleteSavedSearch( this, clickedSavedSearch.getInt( 0 ) );
+		String deletedSavedSearchDescription = clickedSavedSearch.getString( 1 );
+		
+		cursor.requery();
 		Toast.makeText( this,
-				"Deleted saved query " + clickedSavedSearch.getDescription(),
+				"Deleted saved query " + deletedSavedSearchDescription,
 				Toast.LENGTH_SHORT ).show();
 	}
 

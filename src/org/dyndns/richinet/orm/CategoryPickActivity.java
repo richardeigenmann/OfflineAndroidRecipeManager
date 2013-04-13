@@ -48,18 +48,6 @@ public class CategoryPickActivity extends ExpandableListActivity {
 			picks.add( s );
 		}
 
-		// this = context
-		// categories = the List of HashMaps with constant "Category",
-		// "Asiatisch"
-		// R.layout.activity_category_pick_category_row = the layout for the
-		// category rows
-		// new String[] { "Category" } = The Hashmap entry to map to the
-		// new int[] { R.id.category } = The Textview elements they map to
-		// categoryItems = the List of List of HashMap Items
-		// R.layout.activity_category_pick_item_row = the layout for the item
-		// rowm
-		// new String[] { "item" } = the map entries that are to be shown
-		// new int[] { R.id.item } = The Textview items to map them to
 		SimpleExpandableListAdapter expListAdapter = new MySimpleExpandableListAdapter(
 				this, categories, R.layout.activity_category_pick_category_row,
 				new String[] { "Category" }, new int[] { R.id.category },

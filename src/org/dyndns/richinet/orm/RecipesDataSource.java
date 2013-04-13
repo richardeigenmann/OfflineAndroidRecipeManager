@@ -120,80 +120,50 @@ public class RecipesDataSource {
 	public List<Recipe> searchRecipes( int searchId ) {
 		open();
 
-		// breaking the query up to simplify the logic and help the optimiser
-		// first query builds a distinct list of the recipes that match the
-		StringBuilder sqlStatement = new StringBuilder(
-				"create temporary table results as select distinct c."
-						+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + " from "
-						+ DBHandler.TABLE_CLASSIFICATIONS + " c, "
-						+ DBHandler.TABLE_SEARCHPARAMS + " sp where sp."
-						+ DBHandler.SEARCHPARAMS_SEARCH_ID + " = "
-						+ Integer.toString( searchId ) + " and sp."
-						+ DBHandler.SEARCHPARAMS_SEARCH_FIELD + " = 'I';" );
-		Log.d( TAG, sqlStatement.toString() );
-		database.execSQL( sqlStatement.toString() );
-
-		sqlStatement = new StringBuilder( "select " + DBHandler.RECIPE_FILE
-				+ ", " + DBHandler.RECIPE_TITLE + ", "
-				+ DBHandler.RECIPE_IMAGE_FILENAME + ", "
-				+ DBHandler.RECIPE_IMAGE_WIDTH + ", "
-				+ DBHandler.RECIPE_IMAGE_HEIGHT + " from "
-				+ DBHandler.TABLE_RECIPES + " r, temp.results tr where r."
-				+ DBHandler.RECIPE_FILE + " = tr."
-				+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + " order by "
-				+ DBHandler.RECIPE_TITLE );
-
-		// becomes something like this:
-		// select file, title, imagefilename, imagewidth, imageheight
-		// from recipes r
-		// where exists ( select 1 from classifications c, search_parameters sp
-		// where sp.searchId = x and sp.searchField = 'I'
-		// and r.file = c.recipe_file
-		// and sp.searchterm = c.member )
-
-		// and not exists ( select 1 from classifications c where r.file =
-		// c.recipe_file and member in ('Cakes') )
-		// order by title
-
-		/*
-		 * sqlStatement = new StringBuilder( "select " + DBHandler.RECIPE_FILE +
-		 * ", " + DBHandler.RECIPE_TITLE + ", " +
-		 * DBHandler.RECIPE_IMAGE_FILENAME + ", " + DBHandler.RECIPE_IMAGE_WIDTH
-		 * + ", " + DBHandler.RECIPE_IMAGE_HEIGHT + " from " +
-		 * DBHandler.TABLE_RECIPES + " r where exists ( select 1 from " +
-		 * DBHandler.TABLE_CLASSIFICATIONS + " c, " +
-		 * DBHandler.TABLE_SEARCHPARAMS + " sp where sp." +
-		 * DBHandler.SEARCHPARAMS_SEARCH_ID + "=" + Integer.toString( searchId )
-		 * + " and sp." + DBHandler.SEARCHPARAMS_SEARCH_FIELD + "='I' and c." +
-		 * DBHandler.CLASSIFICATIONS_RECIPE_FILE + "=" + "r." +
-		 * DBHandler.RECIPE_FILE + " and c." + DBHandler.CLASSIFICATIONS_MEMBER
-		 * + "= sp." + DBHandler.SEARCHPARAMS_SEARCH_TERM + ") " + " order by "
-		 * + DBHandler.RECIPE_TITLE );
-		 */
+		StringBuilder sqlStatement = new StringBuilder( "select "
+				+ DBHandler.SEARCHPARAMS_SEARCH_FIELD + ", "
+				+ DBHandler.SEARCHPARAMS_SEARCH_TERM + " from "
+				+ DBHandler.TABLE_SEARCHPARAMS + " where "
+				+ DBHandler.SEARCHPARAMS_SEARCH_ID + " = "
+				+ Integer.toString( searchId ) );
 
 		Log.d( TAG, sqlStatement.toString() );
 		Cursor cursor = database.rawQuery( sqlStatement.toString(), null );
 
 		cursor.moveToFirst();
-		List<Recipe> recipes = new ArrayList<Recipe>();
+		List<String> includeWords = new ArrayList<String>();
+		List<String> limitWords = new ArrayList<String>();
+		List<String> excludeWords = new ArrayList<String>();
+
 		while ( !cursor.isAfterLast() ) {
-			Recipe recipe = cursorToRecipe( cursor );
-			recipes.add( recipe );
+			String type = cursor.getString( 0 );
+			// wanted to use switch but it said that is only valid in Java 7
+			if ( "I".equals( type ) ) {
+				includeWords.add( cursor.getString( 1 ) );
+			} else if ( "L".equals( type ) ) {
+				limitWords.add( cursor.getString( 1 ) );
+			} else {
+				excludeWords.add( cursor.getString( 1 ) );
+			}
+
 			cursor.moveToNext();
 		}
 		cursor.close();
-
-		sqlStatement = new StringBuilder( "drop table temp.results" );
-		Log.d( TAG, sqlStatement.toString() );
-		database.execSQL( sqlStatement.toString() );
-
 		close();
-		return recipes;
+
+		return searchRecipes( includeWords.toArray( new String[0] ),
+				limitWords.toArray( new String[0] ),
+				excludeWords.toArray( new String[0] ) );
 
 	}
 
 	/**
-	 * Search recipes matching the criteria
+	 * Search recipes matching the criteria.
+	 * 
+	 * Examples: Include: Zitrone, Rüebli Limit: Cakes, Desserts Exclude: Rahm
+	 * --> Aargauer Rüeblitorte because: includes either Zitrone or Rüebli it is
+	 * part of the universe of 'Cakes' and 'Desserts' it is not in the universe
+	 * of 'Rahm'
 	 * 
 	 * @param includeWords
 	 * @param limitWords
@@ -203,7 +173,14 @@ public class RecipesDataSource {
 	public List<Recipe> searchRecipes( String[] includeWords,
 			String[] limitWords, String[] excludeWords ) {
 
-		StringBuilder inClause = new StringBuilder( "" );
+		/**
+		 * This becomes exists ( select 1 from classifications where recipes =
+		 */
+		StringBuilder inClause = new StringBuilder( "exists ( select 1 from "
+				+ DBHandler.TABLE_CLASSIFICATIONS + " where "
+				+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + "="
+				+ DBHandler.TABLE_RECIPES + "." + DBHandler.RECIPE_FILE
+				+ " and " + DBHandler.CLASSIFICATIONS_MEMBER + " in (" );
 		{
 			boolean notFirstIteration = false;
 			for ( String s : includeWords ) {
@@ -215,6 +192,32 @@ public class RecipesDataSource {
 				inClause.append( DatabaseUtils.sqlEscapeString( s ) );
 			}
 		}
+		inClause.append( ") ) " );
+		Log.d( TAG, "inClause: " + inClause.toString() );
+
+		StringBuilder limitClause = new StringBuilder( "" );
+		// only build the limit clause if there is something to exclude to
+		// keep the sql short and fast
+		if ( limitWords.length > 0 ) {
+			limitClause.append( " and exists ( select 1 from "
+					+ DBHandler.TABLE_CLASSIFICATIONS + " where "
+					+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + "="
+					+ DBHandler.TABLE_RECIPES + "." + DBHandler.RECIPE_FILE
+					+ " and " + DBHandler.CLASSIFICATIONS_MEMBER + " in (" );
+			{
+				boolean notFirstIteration = false;
+				for ( String s : limitWords ) {
+					if ( notFirstIteration ) {
+						limitClause.append( ", " );
+					} else {
+						notFirstIteration = true;
+					}
+					limitClause.append( DatabaseUtils.sqlEscapeString( s ) );
+				}
+			}
+			limitClause.append( ") ) " );
+		}
+		Log.d( TAG, "limitClause: " + limitClause.toString() );
 
 		String excludeClause = "";
 		// only build the exclude clause if there is something to exclude to
@@ -238,13 +241,17 @@ public class RecipesDataSource {
 					+ excludeItems.toString() + ") )";
 		}
 
+		Log.d( TAG, "excludeClause: " + excludeClause.toString() );
+
 		// becomes something like this:
 		// select file, title, imagefilename, imagewidth, imageheight
 		// from recipes r
 		// where exists ( select 1 from classifications c where r.file =
-		// c.recipe_file and member in ('4 Sterne') )
+		// c.recipe_file and member in ('Zitronen', 'Rüebli') )
+		// and exists ( select 1 from classifications c where r.file =
+		// c.recipe_file and member in ('Desserts', 'Cakes') )
 		// and not exists ( select 1 from classifications c where r.file =
-		// c.recipe_file and member in ('Cakes') )
+		// c.recipe_file and member in ('Rahm') )
 		// order by title
 
 		StringBuilder sqlStatement = new StringBuilder( "select "
@@ -252,12 +259,8 @@ public class RecipesDataSource {
 				+ DBHandler.RECIPE_IMAGE_FILENAME + ", "
 				+ DBHandler.RECIPE_IMAGE_WIDTH + ", "
 				+ DBHandler.RECIPE_IMAGE_HEIGHT + " from "
-				+ DBHandler.TABLE_RECIPES + " where exists ( select 1 from "
-				+ DBHandler.TABLE_CLASSIFICATIONS + " where "
-				+ DBHandler.CLASSIFICATIONS_RECIPE_FILE + "="
-				+ DBHandler.TABLE_RECIPES + "." + DBHandler.RECIPE_FILE
-				+ " and " + DBHandler.CLASSIFICATIONS_MEMBER + " in ("
-				+ inClause.toString() + ") ) " + excludeClause + " order by "
+				+ DBHandler.TABLE_RECIPES + " where " + inClause.toString()
+				+ limitClause.toString() + excludeClause + " order by "
 				+ DBHandler.RECIPE_TITLE );
 
 		open();
@@ -485,6 +488,21 @@ public class RecipesDataSource {
 	}
 
 	/**
+	 * Returns a cursor for the save searches
+	 * 
+	 * @return
+	 */
+	public Cursor getSavedSearchesAsCursor() {
+		open();
+		Cursor cursor = database.query( DBHandler.TABLE_SEARCHES,
+				new String[] { DBHandler.SEARCH_ID + " as _id",
+						DBHandler.SEARCH_DESCRIPTION }, null, null, null, null,
+				DBHandler.SEARCH_DESCRIPTION, null );
+		cursor.moveToFirst();
+		return cursor;
+	}
+
+	/**
 	 * Converts a Search Table cursor to a Java Search object
 	 * 
 	 * @param cursor
@@ -504,6 +522,8 @@ public class RecipesDataSource {
 	 * @return the number of recipes
 	 */
 	public static void deleteSavedSearch( Context context, int searchId ) {
+		Log.d( TAG, String.format(
+				"deleteSavedSearch called for search Id: %d", searchId ) );
 		RecipesDataSource datasource;
 		datasource = new RecipesDataSource( context );
 		datasource.open();
